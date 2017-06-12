@@ -25,5 +25,14 @@ int main(int argc, const char* argv[]) {
         std::cout << "Error!" << std::endl;
     }
 
+    num_edges = 0;
+    for(NodeID n = 0; n < G.number_of_nodes(); ++n) {
+        num_edges += G.getNodeDegree(n);
+    }
+
+    if (num_edges != G.number_of_edges()) {
+        std::cout << "Error!" << std::endl;
+    }
+
     std::cout << "Max degree = " << G.getMaxDegree() << std::endl;
 }
