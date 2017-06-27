@@ -1,0 +1,7 @@
+benchmark:
+  script:
+  - ./test.sh
+  artifacts:
+    paths:
+    - results/*
+    expire_in: 1 week
