@@ -5,3 +5,4 @@ benchmark:
     paths:
     - results/*
     expire_in: 1 week
+  when: manual
