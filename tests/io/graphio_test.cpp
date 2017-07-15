@@ -1,7 +1,7 @@
-#include <data_structure/graph.h>
-#include <data_structure/io/graph_io.h>
-
 #include <gtest/gtest.h>
+
+#include "data_structure/graph.h"
+#include "data_structure/io/graph_io.h"
 
 TEST(GraphIO, readGraphWeighted) {
     graph_access G;

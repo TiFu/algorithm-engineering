@@ -18,5 +18,5 @@ add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_
 file(GLOB_RECURSE TEST_SRCS *.cpp)
 
 add_executable(colouring_graph ${TEST_SRCS})
-target_link_libraries(colouring_graph gtest gmock)
+target_link_libraries(colouring_graph ${CORE_LIBS} gtest gmock)
 add_test(terraces_tests colouring_graph)

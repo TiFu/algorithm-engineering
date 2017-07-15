@@ -12,6 +12,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
-include_directories(${ROOT})
+include_directories(${ROOT}/include)
+
+file(GLOB_RECURSE SRCS src/*.cpp)
+file(GLOB_RECURSE INCLUDES include/*.cpp)
+
+add_library(colouring ${SRCS} ${INCLUDES})
+
+set(CORE_LIBS colouring)
 
 add_subdirectory(tests)
