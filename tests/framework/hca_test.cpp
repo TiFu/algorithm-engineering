@@ -5,8 +5,8 @@
 #include <gtest/gtest.h>
 
 typedef std::set<NodeID> partition_t;
-typedef std::vector<partition_t> partition_list_t;
-typedef std::vector<partition_list_t> population_t;
+typedef std::vector<partition_t> configuration_t;
+typedef std::vector<configuration_t> population_t;
 
 template<typename T>
 std::ostream& operator<<(std::ostream &strm, const std::set<T>& set) {
@@ -48,9 +48,9 @@ static bool allowedInClass(const graph_access &G, const partition_t &p, const No
     return true;
 }
 
-static size_t numberOfAllowedClasses(const graph_access &G, const partition_list_t &P, const NodeID nodeID) {
+static size_t numberOfAllowedClasses(const graph_access &G, const configuration_t &c, const NodeID nodeID) {
     size_t count = 0;
-    for(auto &p : P) {
+    for(auto &p : c) {
         count += allowedInClass(G, p, nodeID);
     }
     return count;
@@ -65,13 +65,13 @@ std::set<NodeID> toSet(const graph_access &G) {
 }
 
 static NodeID nextNodeWithMinAllowedClasses(const graph_access &G,
-                                            const partition_list_t &P,
+                                            const configuration_t &c,
                                             const std::set<NodeID> &nodes) {
     assert(!nodes.empty());
     NodeID targetNode = *nodes.begin();
-    size_t minNumberOfAllowedClasses = P.size();
+    size_t minNumberOfAllowedClasses = c.size();
     for(auto n : nodes) {
-        auto count = numberOfAllowedClasses(G, P, n);
+        auto count = numberOfAllowedClasses(G, c, n);
         if(count < minNumberOfAllowedClasses) {
             minNumberOfAllowedClasses = count;
             targetNode = n;
@@ -80,15 +80,15 @@ static NodeID nextNodeWithMinAllowedClasses(const graph_access &G,
     return targetNode;
 }
 
-static partition_list_t generatePopulation(const graph_access &G, const uint32_t k, std::mt19937 &generator) {
-    partition_list_t P;
-    P.resize(k);
+static configuration_t generatePopulation(const graph_access &G, const uint32_t k, std::mt19937 &generator) {
+    configuration_t c;
+    c.resize(k);
 
     auto nodes = toSet(G);
 
-    auto v = nextNodeWithMinAllowedClasses(G, P, nodes);
-    while (!nodes.empty() && numberOfAllowedClasses(G, P, v) > 0) {
-        for(auto &p : P) {
+    auto v = nextNodeWithMinAllowedClasses(G, c, nodes);
+    while (!nodes.empty() && numberOfAllowedClasses(G, c, v) > 0) {
+        for(auto &p : c) {
             if(allowedInClass(G, p, v)) {
                 p.insert(v);
                 break;
@@ -98,15 +98,15 @@ static partition_list_t generatePopulation(const graph_access &G, const uint32_t
         if(nodes.empty()) {
             break;
         }
-        v = nextNodeWithMinAllowedClasses(G, P, nodes);
+        v = nextNodeWithMinAllowedClasses(G, c, nodes);
     }
-    std::uniform_int_distribution<size_t> distribution(0, P.size()-1);
+    std::uniform_int_distribution<size_t> distribution(0, c.size()-1);
     for(NodeID n : nodes) {
-        P[distribution(generator)].insert(n);
+        c[distribution(generator)].insert(n);
     }
 
-    std::cerr << P << "\n";
-    return P;
+    std::cerr << c << "\n";
+    return c;
 }
 
 static population_t initPopulation(const graph_access &G, const size_t population_size, const uint32_t k) {
