@@ -1,6 +1,6 @@
 #include "hca/hca.h"
 
-void hybridColoringAlgorithm(const graph_access &G, const uint32_t k) {
+void hca::hybridColoringAlgorithm(const graph_access &G, const uint32_t k) {
 
 }
 

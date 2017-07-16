@@ -8,4 +8,7 @@ typedef std::set<NodeID> partition_t;
 typedef std::vector<partition_t> configuration_t;
 typedef std::vector<configuration_t> population_t;
 
-void hybridColoringAlgorithm(const graph_access &G, const uint32_t k);
+namespace hca {
+    void hybridColoringAlgorithm(const graph_access &G, const uint32_t k);
+    //std::string toGraphvizStrig(const graph_access &G, const std::string label = "G");
+}
