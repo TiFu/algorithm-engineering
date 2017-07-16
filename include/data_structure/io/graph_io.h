@@ -29,6 +29,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
+#include <string>
 
 #include "data_structure/graph.h"
 
@@ -37,5 +38,6 @@ public:
     graph_io();
     virtual ~graph_io () ;
 
-    static int readGraphWeighted(graph_access& G, std::string filename);
+    static int readGraphWeighted(graph_access &G, const std::string &filename);
+    static std::string toGraphvizStrig(const graph_access &G, const std::string label = "G");
 };

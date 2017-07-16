@@ -13,5 +13,5 @@ TEST(Test, Testtest) {
     std::string graph_filename = "../../input/simple.graph";
 
     graph_io::readGraphWeighted(G, graph_filename);
-    EXPECT_EQ(2, 3);
+    //EXPECT_EQ(2, 3);
 }
