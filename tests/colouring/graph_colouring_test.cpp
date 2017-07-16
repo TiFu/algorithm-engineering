@@ -1,6 +1,6 @@
 #include "data_structure/graph.h"
 #include "data_structure/io/graph_io.h"
-#include "hca/graph_colouring.h"
+#include "colouring/graph_colouring.h"
 
 #include <gtest/gtest.h>
 
