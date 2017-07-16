@@ -33,11 +33,7 @@
 
 #include "data_structure/graph.h"
 
-class graph_io {
-public:
-    graph_io();
-    virtual ~graph_io () ;
-
-    static int readGraphWeighted(graph_access &G, const std::string &filename);
-    static std::string toGraphvizStrig(const graph_access &G, const std::string label = "G");
-};
+namespace graph_io {
+    int readGraphWeighted(graph_access &G, const std::string &filename);
+    std::string toGraphvizStrig(const graph_access &G, const std::string label = "G");
+}
