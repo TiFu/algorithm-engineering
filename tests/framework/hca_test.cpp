@@ -116,7 +116,7 @@ static population_t initPopulation(const graph_access &G, const size_t populatio
     return P;
 }
 
-static void hca(const graph_access &G, const uint32_t k) {
+static void hcalgorithm(const graph_access &G, const uint32_t k) {
     const uint32_t population_size = 10;
 
     population_t P = initPopulation(G, population_size, k);
@@ -127,6 +127,6 @@ TEST(Test, Testtest) {
     std::string graph_filename = "../../input/simple.graph";
 
     graph_io::readGraphWeighted(G, graph_filename);
-    hca(G, 2);
+    hcalgorithm(G, 2);
     //EXPECT_EQ(2, 3);
 }
