@@ -109,7 +109,7 @@ static partition_list_t generatePopulation(const graph_access &G, const uint32_t
     return P;
 }
 
-static partition_list_t initPopulation(const graph_access &G, const size_t population_size, const uint32_t k) {
+static population_t initPopulation(const graph_access &G, const size_t population_size, const uint32_t k) {
     population_t P;
     P.resize(population_size);
     std::mt19937 generator;
@@ -117,12 +117,13 @@ static partition_list_t initPopulation(const graph_access &G, const size_t popul
     for(size_t i = 0; i < population_size; i++) {
         P[i] = generatePopulation(G, k, generator);
     }
+    return P;
 }
 
 static void hca(const graph_access &G, const uint32_t k) {
-    const uint32_t population_size = 100;
+    const uint32_t population_size = 10;
 
-    partition_list_t P = initPopulation(G, population_size, k);
+    population_t P = initPopulation(G, population_size, k);
 }
 
 TEST(Test, Testtest) {
