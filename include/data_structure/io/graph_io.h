@@ -35,5 +35,4 @@
 
 namespace graph_io {
     int readGraphWeighted(graph_access &G, const std::string &filename);
-    std::string toGraphvizStrig(const graph_access &G, const std::string label = "G");
 }
