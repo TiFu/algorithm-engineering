@@ -1,12 +1,8 @@
 #include "data_structure/graph.h"
 #include "data_structure/io/graph_io.h"
-//#include "hca/hca.h"
+#include "hca/hca.h"
 
 #include <gtest/gtest.h>
-
-typedef std::set<NodeID> partition_t;
-typedef std::vector<partition_t> configuration_t;
-typedef std::vector<configuration_t> population_t;
 
 template<typename T>
 std::ostream& operator<<(std::ostream &strm, const std::set<T>& set) {
