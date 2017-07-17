@@ -100,8 +100,6 @@ static configuration_t generatePopulation(const graph_access &G, const uint32_t 
     for(NodeID n : nodes) {
         c[distribution(generator)].insert(n);
     }
-
-    std::cerr << c << "\n";
     return c;
 }
 
@@ -116,7 +114,7 @@ static population_t initPopulation(const graph_access &G, const size_t populatio
     return P;
 }
 
-static void hcalgorithm(const graph_access &G, const uint32_t k) {
+static void algorithm(const graph_access &G, const uint32_t k) {
     const uint32_t population_size = 10;
 
     population_t P = initPopulation(G, population_size, k);
@@ -127,6 +125,6 @@ TEST(Test, Testtest) {
     std::string graph_filename = "../../input/simple.graph";
 
     graph_io::readGraphWeighted(G, graph_filename);
-    hcalgorithm(G, 2);
+    algorithm(G, 2);
     //EXPECT_EQ(2, 3);
 }
