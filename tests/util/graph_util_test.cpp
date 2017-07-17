@@ -8,6 +8,60 @@ TEST(GraphUtil, toGraphvizStrig) {
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);
 
+    const char *expected_graphviz_str =
+            "graph G {\n" \
+            "    0 -- 1;\n" \
+            "    0 -- 5;\n" \
+            "    1 -- 2;\n" \
+            "    1 -- 5;\n" \
+            "    2 -- 3;\n" \
+            "    3 -- 4;\n" \
+            "    4 -- 5;\n" \
+            "}\n";
+
+    EXPECT_EQ(graph_util::toGraphvizStrig(G), expected_graphviz_str);
+}
+
+
+TEST(GraphUtil, toGraphvizStrigWithColors) {
+    graph_access G;
+    std::string graph_filename = "../../input/simple.graph";
+    graph_io::readGraphWeighted(G, graph_filename);
+
+    configuration_t c;
+    c.resize(3);
+    c[0].insert(0);
+    c[0].insert(2);
+    c[0].insert(4);
+    c[1].insert(1);
+    c[1].insert(3);
+    c[2].insert(5);
+
+    const char *expected_graphviz_str =
+        "graph G {\n" \
+        "    0 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
+        "    2 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
+        "    4 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
+        "    1 [penwidth=3 color=\"0.333 0.5 0.5\"];\n" \
+        "    3 [penwidth=3 color=\"0.333 0.5 0.5\"];\n" \
+        "    5 [penwidth=3 color=\"0.667 0.5 0.5\"];\n" \
+        "    0 -- 1;\n" \
+        "    0 -- 5;\n" \
+        "    1 -- 2;\n" \
+        "    1 -- 5;\n" \
+        "    2 -- 3;\n" \
+        "    3 -- 4;\n" \
+        "    4 -- 5;\n" \
+        "}\n";
+
+    EXPECT_EQ(graph_util::toGraphvizStrig(G, c), expected_graphviz_str);
+}
+
+TEST(GraphUtil, toPartitionedGraphvizStrigWithColors) {
+    graph_access G;
+    std::string graph_filename = "../../input/simple.graph";
+    graph_io::readGraphWeighted(G, graph_filename);
+
     configuration_t c;
     c.resize(3);
     c[0].insert(0);
