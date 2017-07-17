@@ -10,5 +10,4 @@ typedef std::vector<configuration_t> population_t;
 
 namespace graph_colouring {
     void hybridColoringAlgorithm(const graph_access &G, const uint32_t k);
-    //std::string toGraphvizStrig(const graph_access &G, const std::string label = "G");
 }
