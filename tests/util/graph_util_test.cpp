@@ -38,7 +38,7 @@ TEST(GraphUtil, toGraphvizStrigWithColors) {
     c[2].insert(5);
 
     const char *expected_graphviz_str =
-        "graph G {\n" \
+            "graph G {\n" \
         "    0 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
         "    2 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
         "    4 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
@@ -73,15 +73,26 @@ TEST(GraphUtil, toPartitionedGraphvizStrigWithColors) {
 
     const char *expected_graphviz_str =
             "graph G {\n" \
+            "    subgraph cluster_0 {\n" \
+            "        0 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
+            "        2 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
+            "        4 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
+            "    }\n" \
+            "    subgraph cluster_1 {\n" \
+            "        1 [penwidth=3 color=\"0.333 0.5 0.5\"];\n" \
+            "        3 [penwidth=3 color=\"0.333 0.5 0.5\"];\n" \
+            "    }\n" \
+            "    subgraph cluster_2 {\n" \
+            "        5 [penwidth=3 color=\"0.667 0.5 0.5\"];\n" \
+            "    }\n" \
             "    0 -- 1;\n" \
-            "    0 -- 5;\n" \
+            "    0 -- 5;\n"\
             "    1 -- 2;\n" \
             "    1 -- 5;\n" \
-            "    2 -- 3;\n" \
-            "    3 -- 4;\n" \
-            "    4 -- 5;\n" \
+            "    2 -- 3;\n"\
+            "    3 -- 4;\n"\
+            "    4 -- 5;\n"\
             "}\n";
 
-    std::cerr << graph_util::toGraphvizStrig(G, c);
-    //EXPECT_EQ(graph_util::toGraphvizStrig(G), expected_graphviz_str);
+    EXPECT_EQ(graph_util::toGraphvizStrig(G, c, true), expected_graphviz_str);
 }
