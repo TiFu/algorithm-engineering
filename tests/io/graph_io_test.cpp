@@ -3,7 +3,7 @@
 #include "data_structure/graph.h"
 #include "data_structure/io/graph_io.h"
 
-TEST(GraphIO, readGraphWeighted) {
+TEST(graph_io, readGraphWeighted) {
     graph_access G;
     std::string graph_filename = "../../input/simple.graph";
 
