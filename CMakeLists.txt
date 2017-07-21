@@ -14,8 +14,14 @@ set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${ROOT}/include)
 
-file(GLOB_RECURSE SRCS src/*.cpp)
-file(GLOB_RECURSE INCLUDES include/*.cpp)
+set(SRCS src/data_structure/io/graph_io.cpp
+        src/util/graph_util.cpp
+        src/colouring/graph_colouring.cpp)
+
+set(INCLUDES include/util/graph_util.h
+        include/data_structure/graph.h
+        include/data_structure/io/graph_io.h
+        include/colouring/graph_colouring.h)
 
 add_library(colouring ${SRCS} ${INCLUDES})
 

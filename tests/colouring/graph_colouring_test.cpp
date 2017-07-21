@@ -2,7 +2,6 @@
 #include "data_structure/io/graph_io.h"
 #include "colouring/graph_colouring.h"
 
-
 #include "util/graph_util.h"
 
 #include <gtest/gtest.h>
