@@ -18,7 +18,8 @@ add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_
 set(TEST_SRCS main.cpp
         util/graph_util_test.cpp
         io/graph_io_test.cpp
-        colouring/graph_colouring_test.cpp)
+        colouring/graph_colouring_test.cpp
+        colouring/greedy_crossover_test.cpp)
 
 add_executable(colouring_graph ${INCLUDE} ${TEST_SRCS})
 target_link_libraries(colouring_graph ${CORE_LIBS} gtest gmock)

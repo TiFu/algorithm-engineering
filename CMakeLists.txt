@@ -16,12 +16,14 @@ include_directories(${ROOT}/include)
 
 set(SRCS src/data_structure/io/graph_io.cpp
         src/util/graph_util.cpp
-        src/colouring/graph_colouring.cpp)
+        src/colouring/graph_colouring.cpp
+        src/colouring/greedy_crossover.cpp)
 
 set(INCLUDES include/util/graph_util.h
         include/data_structure/graph.h
         include/data_structure/io/graph_io.h
-        include/colouring/graph_colouring.h)
+        include/colouring/graph_colouring.h
+        include/colouring/greedy_crossover.h)
 
 add_library(colouring ${SRCS} ${INCLUDES})
 
