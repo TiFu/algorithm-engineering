@@ -17,13 +17,17 @@ include_directories(${ROOT}/include)
 set(SRCS src/data_structure/io/graph_io.cpp
         src/util/graph_util.cpp
         src/colouring/graph_colouring.cpp
-        src/colouring/greedy_crossover.cpp)
+        src/colouring/crossover/gpx.cpp
+        src/colouring/init/greedy_saturation.cpp
+        src/colouring/ls/tabu_search.cpp)
 
 set(INCLUDES include/util/graph_util.h
         include/data_structure/graph.h
         include/data_structure/io/graph_io.h
         include/colouring/graph_colouring.h
-        include/colouring/greedy_crossover.h)
+        include/colouring/crossover/gpx.h
+        include/colouring/init/greedy_saturation.h
+        include/colouring/ls/tabu_search.h)
 
 add_library(colouring ${SRCS} ${INCLUDES})
 
