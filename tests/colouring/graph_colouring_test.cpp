@@ -29,7 +29,7 @@ static void algorithm(const graph_access &G, const uint32_t k) {
     population_t P = initPopulation(G, population_size, k);
 }
 
-TEST(graph_colouring, numberOfConflictingEdges) {
+TEST(GraphColouringNumberOfConflictingEdges, SimpleGraph) {
     graph_access G;
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);
@@ -62,7 +62,7 @@ TEST(graph_colouring, numberOfConflictingEdges) {
     EXPECT_EQ(graph_colouring::numberOfConflictingEdges(G, s_worst_score), 7);
 }
 
-TEST(graph_colouring, numberOfConflictingNodes) {
+TEST(GraphColouringNumberOfConflictingNodes, SimpleGraph) {
     graph_access G;
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);

@@ -9,7 +9,7 @@
 #include <gmock/gmock-matchers.h>
 #include <gmock/gmock.h>
 
-TEST(graph_colouring, tabuSearchOperator) {
+TEST(GraphColouringTabuSearchOperator, SimpleGraph) {
     std::mt19937 generator;
 
     graph_access G;
@@ -29,7 +29,7 @@ TEST(graph_colouring, tabuSearchOperator) {
     ASSERT_THAT(s_small_graph_opt[2], testing::ElementsAre(1, 4));
 }
 
-TEST(graph_colouring, tabuSearchOperator_miles250_sorted) {
+TEST(GraphColouringTabuSearchOperator, Miles250Graph) {
     std::mt19937 generator;
 
     graph_access G;

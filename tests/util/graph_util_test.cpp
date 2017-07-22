@@ -3,7 +3,7 @@
 #include "util/graph_util.h"
 #include "data_structure/io/graph_io.h"
 
-TEST(graph_util, toGraphvizStrig) {
+TEST(GraphUtilToGraphvizStrig, SimpleGraph) {
     graph_access G;
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);
@@ -23,7 +23,7 @@ TEST(graph_util, toGraphvizStrig) {
 }
 
 
-TEST(graph_util, toGraphvizStrigWithColors) {
+TEST(GraphUtilToGraphvizStrigWithConfiguration, SimpleGraph) {
     graph_access G;
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);
@@ -57,7 +57,7 @@ TEST(graph_util, toGraphvizStrigWithColors) {
     EXPECT_EQ(graph_util::toGraphvizStrig(G, s), expected_graphviz_str);
 }
 
-TEST(graph_util, toPartitionedGraphvizStrigWithColors) {
+TEST(GraphUtilToGraphvizStrigWithConfiguration, SimpleGraphWithPartitionFlag) {
     graph_access G;
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);

@@ -5,8 +5,8 @@
 namespace graph_colouring {
     configuration_t tabuSearchOperator(const graph_access &G,
                                        const configuration_t &s,
-                                       const size_t L,
-                                       const size_t A,
-                                       const size_t alpha,
+                                       size_t L,
+                                       size_t alpha,
+                                       size_t A,
                                        std::mt19937 &generator);
 }

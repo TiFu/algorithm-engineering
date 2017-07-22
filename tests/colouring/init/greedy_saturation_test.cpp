@@ -5,7 +5,7 @@
 #include <gmock/gmock-matchers.h>
 #include <gmock/gmock.h>
 
-TEST(graph_colouring, greedy_saturation) {
+TEST(GraphColouringGreedySaturation, SimpleGraph) {
     graph_access G;
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);

@@ -7,7 +7,7 @@
 #include <gmock/gmock-matchers.h>
 #include <gmock/gmock.h>
 
-TEST(gpx, gpxCrossover) {
+TEST(GraphColouringGPX, Simple) {
     NodeID A = 0;
     NodeID B = 1;
     NodeID C = 2;
