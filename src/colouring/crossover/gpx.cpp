@@ -1,6 +1,7 @@
 #include "colouring/crossover/gpx.h"
 
 #include <algorithm>
+#include <array>
 
 configuration_t graph_colouring::gpxCrossover(const configuration_t &s1_org,
                                                 const configuration_t &s2_org,
@@ -13,9 +14,7 @@ configuration_t graph_colouring::gpxCrossover(const configuration_t &s1_org,
     configuration_t s;
     s.resize(s1.size());
 
-    configuration_t *V[2];
-    V[0] = &s1;
-    V[1] = &s2;
+    std::array<configuration_t*,2> V = {&s1, &s2};
 
     for (size_t l = 0; l < s1.size(); l++) {
         auto A = (l & 1);
