@@ -35,6 +35,7 @@
 ### clion IDE files
 .idea/
 cmake-build-debug/
+cmake-build-release/
 
 
 ### cmale internediates
