@@ -2,10 +2,10 @@
 
 configuration_t graph_colouring::tabuSearchOperator(const graph_access &G,
                                                     const configuration_t &s,
+                                                    std::mt19937 &generator,
                                                     const size_t L,
                                                     const size_t A,
-                                                    const double alpha,
-                                                    std::mt19937 &generator) {
+                                                    const double alpha) {
     //std::cerr << "MOP" << "\n";
 
     configuration_t s_mutated = graph_colouring::clone(s);
