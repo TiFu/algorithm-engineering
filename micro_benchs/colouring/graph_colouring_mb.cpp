@@ -15,7 +15,7 @@ void BM_terrace_analysis__enumerate(benchmark::State &state,
         std::string graph_filename = "../../input/miles250-sorted.graph";
         //std::string graph_filename = "../../input/DSJC250.5-sorted.graph";
         graph_io::readGraphWeighted(G, graph_filename);
-        //auto s_best = parallelHCA(G, 10, 10, 8);
+        //auto s_best = parallelColoringAlgorithm(G, 10, 10, 8);
         //std::cerr << "Best score:" << graph_colouring::numberOfConflictingEdges(G, s_best) << "\n";
     }
 }

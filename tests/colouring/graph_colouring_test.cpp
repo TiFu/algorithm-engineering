@@ -12,61 +12,34 @@
 
 #include <chrono>
 
-typedef std::vector<configuration_t> population_t;
-
-static population_t initPopulation(const graph_access &G,
-                                   const size_t population_size,
-                                   const size_t k,
-                                   std::mt19937 generator) {
-    population_t P;
-    P.resize(population_size);
-
-    for (size_t i = 0; i < population_size; i++) {
-        auto s_init = graph_colouring::initByGreedySaturation(G, k, generator);
-        P[i] = graph_colouring::tabuSearchOperator(G,
-                                                   s_init,
-                                                   generator,
-                                                   5,
-                                                   2,
-                                                   0.6);
-    }
-    return P;
-}
-
 static configuration_t parallelHCA(const graph_access &G,
                                    const size_t k,
                                    const size_t population_size,
-                                   const size_t maxItr) {
-    std::mt19937 generator;
+                                   const size_t maxItr,
+                                   const size_t L,
+                                   const size_t A,
+                                   const double alpha) {
+    return graph_colouring::parallelColoringAlgorithm([L, A, alpha](const graph_access &graph,
+                                                                    const size_t colors,
+                                                                    std::mt19937 &generator) {
+        auto s_init = graph_colouring::initByGreedySaturation(graph, colors, generator);
+        return graph_colouring::tabuSearchOperator(graph,
+                                                   s_init,
+                                                   generator,
+                                                   L,
+                                                   A,
+                                                   alpha);
 
-    population_t P = initPopulation(G, population_size, k, generator);
-
-    for (size_t itr = 0; itr < maxItr; itr++) {
-        const size_t mating_population_size = population_size / 2;
-        std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
-        for (size_t i = 0; i < mating_population_size; i++) {
-            std::array<configuration_t *, 2> parents = {&P[distribution(generator)], &P[distribution(generator)]};
-            auto s = graph_colouring::tabuSearchOperator(G, graph_colouring::gpxCrossover(*parents[0],
-                                                                                          *parents[1],
-                                                                                          generator),
-                                                         generator,
-                                                         5,
-                                                         2,
-                                                         0.6);
-            if (graph_colouring::numberOfConflictingEdges(G, *parents[0]) >
-                graph_colouring::numberOfConflictingEdges(G, *parents[1])) {
-                *parents[0] = s;
-            } else {
-                *parents[1] = s;
-            }
-        }
-    }
-    return *std::max_element(P.begin(),
-                             P.end(),
-                             [&G](const configuration_t &a, const configuration_t &b) {
-                                 return graph_colouring::numberOfConflictingEdges(G, a) >
-                                        graph_colouring::numberOfConflictingEdges(G, b);
-                             });
+    }, [](const graph_access &G_,
+          const configuration_t &s1,
+          const configuration_t &s2,
+          std::mt19937 &generator) {
+        return graph_colouring::gpxCrossover(s1, s2, generator);
+    }, [L, A, alpha](const graph_access &graph,
+                     const configuration_t &s,
+                     std::mt19937 &generator) {
+        return graph_colouring::tabuSearchOperator(graph, s, generator, L, A, alpha);
+    }, G, k, population_size, maxItr);
 }
 
 TEST(GraphColouringNumberOfConflictingEdges, SimpleGraph) {
@@ -142,12 +115,17 @@ TEST(GraphColouringParallelHCA, DSJC250_5_Graph) {
     //std::string graph_filename = "../../input/DSJC250.5-sorted.graph";
     graph_io::readGraphWeighted(G, graph_filename);
 
+    const size_t L = 5;
+    const size_t A = 2;
+    const double alpha = 0.6;
+    const size_t k = 8;
+    const size_t population_size = 10;
+    const size_t maxItr = 10;
     auto begin = std::chrono::high_resolution_clock::now();
-    auto s_best = parallelHCA(G, 8, 10, 10);
+    auto s_best = parallelHCA(G, k, population_size, maxItr, L, A, alpha);
     auto end = std::chrono::high_resolution_clock::now();
     std::cerr << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1000.0 / 1000.0 / 1000.0
               << "s" << std::endl;
-
     std::cerr << "Best score:" << graph_colouring::numberOfConflictingEdges(G, s_best) << "\n";
     //EXPECT_EQ(2, 3);
 }
