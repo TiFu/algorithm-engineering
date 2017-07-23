@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(test_graph)
+project(colouring_test)
 
 include(CTest)
 enable_testing()
@@ -23,6 +23,6 @@ set(TEST_SRCS main.cpp
         colouring/init/greedy_saturation_test.cpp
         colouring/ls/tabu_search_test.cpp)
 
-add_executable(colouring_graph ${INCLUDE} ${TEST_SRCS})
-target_link_libraries(colouring_graph ${CORE_LIBS} gtest gmock)
-add_test(terraces_tests colouring_graph)
+add_executable(colouring_test ${INCLUDE} ${TEST_SRCS})
+target_link_libraries(colouring_test ${CORE_LIBS} gtest gmock)
+add_test(colouring_test colouring_test)

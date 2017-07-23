@@ -34,3 +34,4 @@ add_library(colouring ${SRCS} ${INCLUDES})
 set(CORE_LIBS colouring)
 
 add_subdirectory(tests)
+add_subdirectory(micro_benchs)
