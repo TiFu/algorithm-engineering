@@ -1,6 +1,9 @@
 #include "data_structure/graph.h"
 #include "data_structure/io/graph_io.h"
 #include "colouring/graph_colouring.h"
+#include "colouring/init/greedy_saturation.h"
+#include "colouring/crossover/gpx.h"
+#include "colouring/ls/tabu_search.h"
 
 
 #include "util/graph_util.h"
@@ -9,24 +12,62 @@
 #include <gmock/gmock-matchers.h>
 #include <gmock/gmock.h>
 
+typedef std::vector<configuration_t> population_t;
 
-static population_t initPopulation(const graph_access &G, const size_t population_size, const uint32_t k) {
+static population_t initPopulation(const graph_access &G,
+                                   const size_t population_size,
+                                   const size_t k,
+                                   std::mt19937 generator) {
     population_t P;
     P.resize(population_size);
-    std::mt19937 generator;
 
     for (size_t i = 0; i < population_size; i++) {
-        //P[i] = initByGreedySaturation(G, k, generator);
+        auto s_init = graph_colouring::initByGreedySaturation(G, k, generator);
+        P[i] = graph_colouring::tabuSearchOperator(G,
+                                                   s_init,
+                                                   5,
+                                                   2,
+                                                   0.6,
+                                                   generator);
     }
     return P;
 }
 
-static void algorithm(const graph_access &G, const uint32_t k) {
-    const uint32_t population_size = 10;
+static configuration_t parallelHCA(const graph_access &G,
+                        const size_t population_size,
+                        const size_t maxItr,
+                        const size_t k) {
+    std::mt19937 generator;
 
-    //std::cerr << graph_util::toGraphvizStrig(G);
+    population_t P = initPopulation(G, population_size, k, generator);
 
-    population_t P = initPopulation(G, population_size, k);
+    for (size_t itr = 0; itr < maxItr; itr++) {
+        const size_t mating_population_size = population_size / 2;
+        const size_t mating_population_size = population_size / 2;
+        std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
+        for (size_t i = 0; i < mating_population_size; i++) {
+            std::array<configuration_t *, 2> parents = {&P[distribution(generator)], &P[distribution(generator)]};
+            auto s = graph_colouring::tabuSearchOperator(G, graph_colouring::gpxCrossover(*parents[0],
+                                                                                          *parents[1],
+                                                                                          generator),
+                                                         5,
+                                                         2,
+                                                         0.6,
+                                                         generator);
+            if (graph_colouring::numberOfConflictingEdges(G, *parents[0]) >
+                graph_colouring::numberOfConflictingEdges(G, *parents[1])) {
+                *parents[0] = s;
+            } else {
+                *parents[1] = s;
+            }
+        }
+    }
+    return *std::max_element(P.begin(),
+                            P.end(),
+                            [&G](const configuration_t &a, const configuration_t &b) {
+                                return graph_colouring::numberOfConflictingEdges(G, a) >
+                                        graph_colouring::numberOfConflictingEdges(G, b);
+                            });
 }
 
 TEST(GraphColouringNumberOfConflictingEdges, SimpleGraph) {
@@ -95,11 +136,13 @@ TEST(GraphColouringNumberOfConflictingNodes, SimpleGraph) {
     EXPECT_EQ(graph_colouring::numberOfConflictingNodes(G, s_worst_score), 6);
 }
 
-TEST(graph_colouring, Testtest) {
+TEST(GraphColouringParallelHCA, DSJC250_5_Graph) {
     graph_access G;
-    std::string graph_filename = "../../input/simple.graph";
-    //std::string graph_filename = "../../input/miles250-sorted.graph";
+    //std::string graph_filename = "../../input/simple.graph";
+    std::string graph_filename = "../../input/miles250-sorted.graph";
+    //std::string graph_filename = "../../input/DSJC250.5-sorted.graph";
     graph_io::readGraphWeighted(G, graph_filename);
-    algorithm(G, 2);
+    auto s_best = parallelHCA(G, 10, 10, 8);
+    std::cerr << "Best score:" << graph_colouring::numberOfConflictingEdges(G, s_best) << "\n";
     //EXPECT_EQ(2, 3);
 }

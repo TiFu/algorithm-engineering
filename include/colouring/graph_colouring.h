@@ -7,7 +7,6 @@
 
 typedef std::set<NodeID> partition_t;
 typedef std::vector<partition_t> configuration_t;
-typedef std::vector<configuration_t> population_t;
 
 namespace graph_colouring {
     bool allowedInClass(const graph_access &G, const partition_t &p, NodeID nodeID);
