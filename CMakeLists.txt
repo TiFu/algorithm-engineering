@@ -19,7 +19,8 @@ set(SRCS src/data_structure/io/graph_io.cpp
         src/colouring/graph_colouring.cpp
         src/colouring/crossover/gpx.cpp
         src/colouring/init/greedy_saturation.cpp
-        src/colouring/ls/tabu_search.cpp)
+        src/colouring/ls/tabu_search.cpp
+        src/colouring/hca.cpp)
 
 set(INCLUDES include/util/graph_util.h
         include/data_structure/graph.h
@@ -27,7 +28,8 @@ set(INCLUDES include/util/graph_util.h
         include/colouring/graph_colouring.h
         include/colouring/crossover/gpx.h
         include/colouring/init/greedy_saturation.h
-        include/colouring/ls/tabu_search.h)
+        include/colouring/ls/tabu_search.h
+        include/colouring/hca.h)
 
 add_library(colouring ${SRCS} ${INCLUDES})
 
