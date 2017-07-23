@@ -15,6 +15,6 @@ download_project(
 add_subdirectory(${googlebenchmark_SOURCE_DIR} ${googlebenchmark_BINARY_DIR} EXCLUDE_FROM_ALL)
 include_directories(SYSTEM "${googlebenchmark_SOURCE_DIR}/include")
 
-add_executable(graph_colouring_mb ${INCLUDE} colouring/graph_colouring_mb.cpp)
-target_link_libraries(graph_colouring_mb ${CORE_LIBS} benchmark)
-add_test(colouring_micro_benchmark graph_colouring_mb)
+add_executable(hca_mb ${INCLUDE} colouring/hca_mb.cpp)
+target_link_libraries(hca_mb ${CORE_LIBS} benchmark)
+add_test(colouring_micro_benchmark hca_mb)

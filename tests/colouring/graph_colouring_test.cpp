@@ -89,11 +89,6 @@ TEST(GraphColouringParallelHCA, DSJC250_5_Graph) {
     const size_t k = 8;
     const size_t population_size = 10;
     const size_t maxItr = 10;
-    auto begin = std::chrono::high_resolution_clock::now();
     auto s_best = graph_colouring::parallelHybridColoringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cerr << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() / 1000.0 / 1000.0 / 1000.0
-              << "s" << std::endl;
-    std::cerr << "Best score:" << graph_colouring::numberOfConflictingEdges(G, s_best) << "\n";
-    //EXPECT_EQ(2, 3);
+    EXPECT_EQ(graph_colouring::numberOfConflictingEdges(G, s_best), 0);
 }
