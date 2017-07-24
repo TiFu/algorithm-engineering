@@ -125,19 +125,19 @@ namespace graph_colouring {
         std::vector<std::atomic_flag> lock(population_size);
 
         static std::mt19937 *generator;
-#pragma omp threadprivate(generator)
+        #pragma omp threadprivate(generator)
 
         population_t P;
         P.resize(population_size);
 
-#pragma omp parallel
+        #pragma omp parallel
         {
             if (generator == nullptr) {
                 auto seed = std::hash<std::thread::id>()(std::this_thread::get_id());
                 generator = new std::mt19937(seed);
             }
 
-#pragma omp for
+            #pragma omp for
             for (size_t i = 0; i < population_size; i++) {
                 P[i] = initOperator(G, k, *generator);
             }
@@ -146,10 +146,10 @@ namespace graph_colouring {
 
         for (size_t itr = 0; itr < maxItr; itr++) {
             const size_t mating_population_size = population_size / 2;
-#pragma omp parallel
+            #pragma omp parallel
             {
                 std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
-#pragma omp for
+                #pragma omp for
                 for (size_t i = 0; i < mating_population_size; i++) {
                     size_t p1 = distribution(*generator);
                     for (auto j = 0; j < population_size; j++) {
