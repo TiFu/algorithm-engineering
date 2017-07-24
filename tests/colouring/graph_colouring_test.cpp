@@ -89,6 +89,6 @@ TEST(GraphColouringParallelHCA, DSJC250_5_Graph) {
     const size_t k = 8;
     const size_t population_size = 10;
     const size_t maxItr = 10;
-    auto s_best = graph_colouring::parallelHybridColoringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
+    auto s_best = graph_colouring::hybridColoringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
     EXPECT_EQ(graph_colouring::numberOfConflictingEdges(G, s_best), 0);
 }

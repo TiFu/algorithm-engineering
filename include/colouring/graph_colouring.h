@@ -24,6 +24,14 @@ namespace graph_colouring {
                                           const configuration_t &s,
                                           std::mt19937 &generator)> LSOperator;
 
+    configuration_t coloringAlgorithm(const InitOperator &initOperator,
+                                      const CrossoverOperator &crossoverOperator,
+                                      const LSOperator &lsOperator,
+                                      const graph_access &G,
+                                      size_t k,
+                                      size_t population_size,
+                                      size_t maxItr);
+
     configuration_t parallelColoringAlgorithm(const InitOperator &initOperator,
                                               const CrossoverOperator &crossoverOperator,
                                               const LSOperator &lsOperator,

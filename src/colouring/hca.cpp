@@ -9,16 +9,16 @@
 
 namespace graph_colouring {
 
-    configuration_t parallelHybridColoringAlgorithm(const graph_access &G,
-                                                    const size_t k,
-                                                    const size_t population_size,
-                                                    const size_t maxItr,
-                                                    const size_t L,
-                                                    const size_t A,
-                                                    const double alpha) {
-        return graph_colouring::parallelColoringAlgorithm([L, A, alpha](const graph_access &graph,
-                                                                        const size_t colors,
-                                                                        std::mt19937 &generator) {
+    configuration_t hybridColoringAlgorithm(const graph_access &G,
+                                            size_t k,
+                                            size_t population_size,
+                                            size_t maxItr,
+                                            size_t L,
+                                            size_t A,
+                                            double alpha) {
+        return graph_colouring::coloringAlgorithm([L, A, alpha](const graph_access &graph,
+                                                                const size_t colors,
+                                                                std::mt19937 &generator) {
             auto s_init = graph_colouring::initByGreedySaturation(graph, colors, generator);
             return graph_colouring::tabuSearchOperator(graph,
                                                        s_init,
