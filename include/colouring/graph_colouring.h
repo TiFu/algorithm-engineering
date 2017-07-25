@@ -12,17 +12,14 @@ typedef std::vector<partition_t> configuration_t;
 namespace graph_colouring {
 
     typedef std::function<configuration_t(const graph_access &G,
-                                          const size_t k,
-                                          std::mt19937 &generator)> InitOperator;
+                                          const size_t k)> InitOperator;
 
     typedef std::function<configuration_t(const graph_access &G,
                                           const configuration_t &s1,
-                                          const configuration_t &s2,
-                                          std::mt19937 &generator)> CrossoverOperator;
+                                          const configuration_t &s2)> CrossoverOperator;
 
     typedef std::function<configuration_t(const graph_access &G,
-                                          const configuration_t &s,
-                                          std::mt19937 &generator)> LSOperator;
+                                          const configuration_t &s)> LSOperator;
 
     configuration_t coloringAlgorithm(const InitOperator &initOperator,
                                       const CrossoverOperator &crossoverOperator,

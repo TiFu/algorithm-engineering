@@ -19,8 +19,8 @@ static NodeID nextNodeWithMinAllowedClasses(const graph_access &G,
 }
 
 configuration_t graph_colouring::initByGreedySaturation(const graph_access &G,
-                                                        const size_t k,
-                                                        std::mt19937 &generator) {
+                                                        const size_t k) {
+    std::mt19937 generator;
     configuration_t s;
     s.resize(k);
 

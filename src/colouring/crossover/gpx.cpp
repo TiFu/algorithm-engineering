@@ -4,9 +4,8 @@
 #include <array>
 
 configuration_t graph_colouring::gpxCrossover(const configuration_t &s1_org,
-                                              const configuration_t &s2_org,
-                                              std::mt19937 &generator) {
-    assert(s1_org.size() == s2_org.size());
+                                              const configuration_t &s2_org) {
+    std::mt19937 generator;
 
     auto s1 = graph_colouring::clone(s1_org);
     auto s2 = graph_colouring::clone(s2_org);

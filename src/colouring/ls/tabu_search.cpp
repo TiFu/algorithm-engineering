@@ -2,7 +2,6 @@
 
 configuration_t graph_colouring::tabuSearchOperator(const graph_access &G,
                                                     const configuration_t &s,
-                                                    std::mt19937 &generator,
                                                     const size_t L,
                                                     const size_t A,
                                                     const double alpha) {
@@ -10,6 +9,7 @@ configuration_t graph_colouring::tabuSearchOperator(const graph_access &G,
 
     configuration_t s_mutated = graph_colouring::clone(s);
     std::uniform_int_distribution<size_t> distribution(0, A - 1);
+    std::mt19937 generator;
     //tabu tenure
     const size_t tl = static_cast<size_t>(distribution(generator)
                                           + alpha * graph_colouring::numberOfConflictingNodes(G, s_mutated));

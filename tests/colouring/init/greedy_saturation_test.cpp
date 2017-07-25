@@ -10,9 +10,7 @@ TEST(GraphColouringGreedySaturation, SimpleGraph) {
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);
 
-    std::mt19937 generator;
-
-    auto s_init = graph_colouring::initByGreedySaturation(G,3, generator);
+    auto s_init = graph_colouring::initByGreedySaturation(G,3);
 
     EXPECT_EQ(s_init.size(), 3);
     EXPECT_THAT(s_init[0], testing::ElementsAre(0, 2, 4));

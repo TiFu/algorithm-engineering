@@ -52,8 +52,7 @@ TEST(GraphColouringGPX, Simple) {
     s2[2].insert(H);
     s2[2].insert(J);
 
-    std::mt19937 generator;
-    auto s = graph_colouring::gpxCrossover(s1, s2, generator);
+    auto s = graph_colouring::gpxCrossover(s1, s2);
     ASSERT_EQ(s.size(), s1.size());
     ASSERT_THAT(s[0], testing::ElementsAre(D, E, F, G));
     ASSERT_THAT(s[1], testing::ElementsAre(B, H, J));

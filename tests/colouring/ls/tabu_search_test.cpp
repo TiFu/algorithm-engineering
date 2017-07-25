@@ -10,8 +10,6 @@
 #include <gmock/gmock.h>
 
 TEST(GraphColouringTabuSearchOperator, SimpleGraph) {
-    std::mt19937 generator;
-
     graph_access G;
     graph_io::readGraphWeighted(G, "../../input/simple.graph");
     configuration_t s_small_graph;
@@ -23,20 +21,18 @@ TEST(GraphColouringTabuSearchOperator, SimpleGraph) {
     s_small_graph[1].insert(4);
     s_small_graph[1].insert(5);
 
-    auto s_small_graph_opt = graph_colouring::tabuSearchOperator(G, s_small_graph, generator, 10, 3, 2);
+    auto s_small_graph_opt = graph_colouring::tabuSearchOperator(G, s_small_graph, 10, 3, 2);
     ASSERT_THAT(s_small_graph_opt[0], testing::ElementsAre(0, 2));
     ASSERT_THAT(s_small_graph_opt[1], testing::ElementsAre(3, 5));
     ASSERT_THAT(s_small_graph_opt[2], testing::ElementsAre(1, 4));
 }
 
 TEST(GraphColouringTabuSearchOperator, Miles250Graph) {
-    std::mt19937 generator;
-
     graph_access G;
     graph_io::readGraphWeighted(G, "../../input/miles250-sorted.graph");
-    configuration_t s_init = graph_colouring::initByGreedySaturation(G, 5, generator);
+    configuration_t s_init = graph_colouring::initByGreedySaturation(G, 5);
     ASSERT_EQ(graph_colouring::numberOfConflictingEdges(G, s_init), 71);
 
-    auto s_opt = graph_colouring::tabuSearchOperator(G, s_init, generator, 100, 3, 2);
+    auto s_opt = graph_colouring::tabuSearchOperator(G, s_init, 100, 3, 2);
     ASSERT_EQ(graph_colouring::numberOfConflictingEdges(G, s_opt), 16);
 }

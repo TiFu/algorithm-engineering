@@ -17,25 +17,21 @@ namespace graph_colouring {
                                             size_t A,
                                             double alpha) {
         return graph_colouring::coloringAlgorithm([L, A, alpha](const graph_access &graph,
-                                                                const size_t colors,
-                                                                std::mt19937 &generator) {
-            auto s_init = graph_colouring::initByGreedySaturation(graph, colors, generator);
+                                                                const size_t colors) {
+            auto s_init = graph_colouring::initByGreedySaturation(graph, colors);
             return graph_colouring::tabuSearchOperator(graph,
                                                        s_init,
-                                                       generator,
                                                        L,
                                                        A,
                                                        alpha);
 
         }, [](const graph_access &G_,
               const configuration_t &s1,
-              const configuration_t &s2,
-              std::mt19937 &generator) {
-            return graph_colouring::gpxCrossover(s1, s2, generator);
+              const configuration_t &s2) {
+            return graph_colouring::gpxCrossover(s1, s2);
         }, [L, A, alpha](const graph_access &graph,
-                         const configuration_t &s,
-                         std::mt19937 &generator) {
-            return graph_colouring::tabuSearchOperator(graph, s, generator, L, A, alpha);
+                         const configuration_t &s) {
+            return graph_colouring::tabuSearchOperator(graph, s, L, A, alpha);
         }, G, k, population_size, maxItr);
     }
 
