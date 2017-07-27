@@ -2,9 +2,10 @@
 
 #include "util/graph_util.h"
 
+#include <atomic>
 #include <algorithm>
 #include <thread>
-#include <utility>
+#include <omp.h>
 
 typedef std::vector<configuration_t> population_t;
 
@@ -24,7 +25,7 @@ namespace graph_colouring {
     numberOfAllowedClasses(const graph_access &G, const configuration_t &c, const NodeID nodeID) {
         size_t count = 0;
         for (auto &p : c) {
-            count += allowedInClass(G, p, nodeID);
+            count += static_cast<size_t>(allowedInClass(G, p, nodeID));
         }
         return count;
     }
@@ -69,7 +70,7 @@ namespace graph_colouring {
         for (auto &p : s) {
             for (auto &n : p) {
                 for (auto neighbour : G.neighbours(n)) {
-                    count += (p.count(neighbour) > 0);
+                    count += static_cast<size_t>(p.count(neighbour) > 0);
                 }
             }
         }
@@ -98,14 +99,14 @@ namespace graph_colouring {
             std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
             for (size_t i = 0; i < mating_population_size; i++) {
                 std::array<configuration_t *, 2> parents = {&P[distribution(generator)], &P[distribution(generator)]};
-                auto s = lsOperator(G,
-                                    crossoverOperator(G, *parents[0], *parents[1]));
-                if (graph_colouring::numberOfConflictingEdges(G, *parents[0]) >
-                    graph_colouring::numberOfConflictingEdges(G, *parents[1])) {
-                    *parents[0] = s;
-                } else {
-                    *parents[1] = s;
-                }
+
+                auto scoreP1 = graph_colouring::numberOfConflictingEdges(G, *parents[0]);
+                auto scoreP2 = graph_colouring::numberOfConflictingEdges(G, *parents[1]);
+
+                size_t target = 1 - static_cast<size_t>(scoreP1 > scoreP2);
+
+                *parents[target] = lsOperator(G,
+                                              crossoverOperator(G, *parents[0], *parents[1]));
             }
         }
         return *std::max_element(P.begin(),
@@ -115,6 +116,22 @@ namespace graph_colouring {
                                             graph_colouring::numberOfConflictingEdges(G, b);
                                  });
     }
+
+    inline size_t chooseParent(std::vector<std::atomic<bool>> &lock,
+                               std::mt19937 &generator,
+                               std::uniform_int_distribution<size_t> &distribution) {
+        size_t nextTry;
+        bool expected;
+        do {
+            expected = true;
+            nextTry = distribution(generator);
+        } while (!lock[nextTry].compare_exchange_weak(expected, false));
+        return nextTry;
+    }
+
+    typedef std::mt19937::result_type seed_type;
+
+    typename std::chrono::system_clock seed_clock;
 
     configuration_t parallelColoringAlgorithm(const InitOperator &initOperator,
                                               const CrossoverOperator &crossoverOperator,
@@ -124,46 +141,42 @@ namespace graph_colouring {
                                               const size_t population_size,
                                               const size_t maxItr) {
 
-        std::mt19937 generator;
-        std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
-
         population_t P;
         P.resize(population_size);
-        std::vector<size_t> permutation;
-        permutation.resize(population_size);
 
-        #pragma omp parallel
-        {
-            std::mt19937 generator;
-            #pragma omp for
-            for (size_t i = 0; i < population_size; i++) {
-                P[i] = initOperator(G, k);
-                permutation[i] = i;
-            }
+        //lock[i] = true -> i-th parent is free for mating
+        std::vector<std::atomic<bool>> lock(population_size);
+
+        #pragma omp parallel for
+        for (size_t i = 0; i < population_size; i++) {
+            P[i] = initOperator(G, k);
+            lock[i].store(true);
         }
 
         for (size_t itr = 0; itr < maxItr; itr++) {
             const size_t mating_population_size = population_size / 2;
-
-            for (size_t i = 0; i < population_size; i++) {
-                std::swap(permutation[distribution(generator)],
-                          permutation[distribution(generator)]);
-            }
-
             #pragma omp parallel
             {
+                auto init_seed = static_cast<seed_type>
+                (seed_clock.now().time_since_epoch().count());
+                init_seed += static_cast<seed_type>(omp_get_thread_num());
+                std::mt19937 generator(init_seed);
+                std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
                 #pragma omp for
                 for (size_t i = 0; i < mating_population_size; i++) {
-                    std::array<configuration_t *, 2> parents = {&P[permutation[2*i]],
-                                                                &P[permutation[2*i+1]]};
-                    auto s_cross = crossoverOperator(G, *parents[0], *parents[1]);
-                    auto s = lsOperator(G, s_cross);
-                    if (graph_colouring::numberOfConflictingEdges(G, *parents[0]) >
-                        graph_colouring::numberOfConflictingEdges(G, *parents[1])) {
-                        *parents[0] = s;
-                    } else {
-                        *parents[1] = s;
-                    }
+                    auto p1 = chooseParent(lock, generator, distribution);
+                    auto p2 = chooseParent(lock, generator, distribution);
+                    std::array<configuration_t *, 2> parents = {&P[p1],
+                                                                &P[p2]};
+                    auto scoreP1 = graph_colouring::numberOfConflictingEdges(G, *parents[0]);
+                    auto scoreP2 = graph_colouring::numberOfConflictingEdges(G, *parents[1]);
+
+                    size_t target = 1 - static_cast<size_t>(scoreP1 > scoreP2);
+
+                    *parents[target] = lsOperator(G,
+                                                  crossoverOperator(G, *parents[0], *parents[1]));
+                    lock[p1].store(true);
+                    lock[p2].store(true);
                 }
             }
         }
@@ -175,5 +188,4 @@ namespace graph_colouring {
                                             graph_colouring::numberOfConflictingEdges(G, b);
                                  });
     }
-
 }
