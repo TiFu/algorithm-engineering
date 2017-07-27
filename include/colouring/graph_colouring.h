@@ -41,8 +41,6 @@ namespace graph_colouring {
 
     size_t numberOfAllowedClasses(const graph_access &G, const configuration_t &c, NodeID nodeID);
 
-    bool isConflicting(NodeID node, const partition_t &p, const graph_access &G);
-
     size_t numberOfConflictingNodes(const graph_access &G,
                                     const configuration_t &s);
 

@@ -32,7 +32,7 @@ configuration_t graph_colouring::tabuSearchOperator(const graph_access &G,
         for (size_t c_v = 0; c_v < k; c_v++) {
             //std::cerr << "c_v:" << c_v << "\n";
             for (auto v : s_mutated[c_v]) {
-                if (graph_colouring::isConflicting(v, s_mutated[c_v], G)) {
+                if (!graph_colouring::allowedInClass(G, s_mutated[c_v], v)) {
                     for (size_t i = 0; i < k; i++) {
                         if (i == c_v || tabu_table[v * k + c_v] > l) {
                             continue;

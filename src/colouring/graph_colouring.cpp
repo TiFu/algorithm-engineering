@@ -7,12 +7,9 @@
 #include <thread>
 #include <omp.h>
 
-typedef std::vector<configuration_t> population_t;
-
 namespace graph_colouring {
 
     bool allowedInClass(const graph_access &G, const partition_t &p, const NodeID nodeID) {
-        assert(p.count(nodeID) <= 0);
         for (auto neighbour : G.neighbours(nodeID)) {
             if (p.count(neighbour) > 0) {
                 return false;
@@ -28,15 +25,6 @@ namespace graph_colouring {
             count += static_cast<size_t>(allowedInClass(G, p, nodeID));
         }
         return count;
-    }
-
-    bool isConflicting(const NodeID node, const partition_t &p, const graph_access &G) {
-        for (auto neighbour : G.neighbours(node)) {
-            if (p.count(neighbour) > 0) {
-                return true;
-            }
-        }
-        return false;
     }
 
     configuration_t clone(const configuration_t &s) {
@@ -87,7 +75,7 @@ namespace graph_colouring {
                                       size_t maxItr) {
         std::mt19937 generator;
 
-        population_t P;
+        std::vector<configuration_t> P;
         P.resize(population_size);
 
         for (size_t i = 0; i < population_size; i++) {
@@ -141,28 +129,28 @@ namespace graph_colouring {
                                               const size_t population_size,
                                               const size_t maxItr) {
 
-        population_t P;
+        std::vector<configuration_t> P;
         P.resize(population_size);
 
         //lock[i] = true -> i-th parent is free for mating
         std::vector<std::atomic<bool>> lock(population_size);
 
-        #pragma omp parallel for
+#pragma omp parallel for
         for (size_t i = 0; i < population_size; i++) {
             P[i] = initOperator(G, k);
             lock[i].store(true);
         }
 
+        const size_t mating_population_size = population_size / 2;
         for (size_t itr = 0; itr < maxItr; itr++) {
-            const size_t mating_population_size = population_size / 2;
-            #pragma omp parallel
+#pragma omp parallel
             {
                 auto init_seed = static_cast<seed_type>
                 (seed_clock.now().time_since_epoch().count());
                 init_seed += static_cast<seed_type>(omp_get_thread_num());
                 std::mt19937 generator(init_seed);
                 std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
-                #pragma omp for
+#pragma omp for
                 for (size_t i = 0; i < mating_population_size; i++) {
                     auto p1 = chooseParent(lock, generator, distribution);
                     auto p2 = chooseParent(lock, generator, distribution);
