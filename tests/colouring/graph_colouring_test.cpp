@@ -1,6 +1,6 @@
-#include "data_structure/io/graph_io.h"
+#include "colouring/graph_colouring.h"
 
-#include "colouring/hca.h"
+#include "data_structure/io/graph_io.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
@@ -36,19 +36,4 @@ TEST(GraphColouringNumberOfConflictingNodes, SimpleGraph) {
 
     graph_colouring::Configuration s_worst_score = {0, 0, 0, 0, 0, 0};
     EXPECT_EQ(graph_colouring::numberOfConflictingNodes(G, s_worst_score), 6);
-}
-
-TEST(GraphColouringParallelHCA, DSJC250_5_Graph) {
-    graph_access G;
-    std::string graph_filename = "../../input/miles250-sorted.graph";
-    graph_io::readGraphWeighted(G, graph_filename);
-
-    const size_t L = 5;
-    const size_t A = 2;
-    const double alpha = 0.6;
-    const size_t k = 8;
-    const size_t population_size = 10;
-    const size_t maxItr = 10;
-    auto s_best = graph_colouring::hybridColoringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
-    EXPECT_EQ(graph_colouring::numberOfConflictingEdges(G, s_best), 0);
 }

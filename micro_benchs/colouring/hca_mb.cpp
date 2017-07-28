@@ -8,12 +8,18 @@
 
 using namespace graph_colouring;
 
-typedef std::vector<Configuration> population_t;
+static bool cmpIllegalColoring(const graph_access &G,
+                               const Configuration &a,
+                               const Configuration &b) {
+    return graph_colouring::numberOfConflictingEdges(G, a) >
+           graph_colouring::numberOfConflictingEdges(G, b);
+}
 
 typedef std::function<Configuration(
         const InitOperator &initOperator,
         const CrossoverOperator &crossoverOperator,
         const LSOperator &lsOperator,
+        const ConfugirationCompare &cmp,
         const graph_access &G,
         size_t k,
         size_t population_size,
@@ -43,7 +49,7 @@ Configuration testAlgorithm(const ColouringAlgorithm &colouringAlgorithm,
     }, [L, A, alpha](const graph_access &graph,
                      const Configuration &s) {
         return graph_colouring::tabuSearchOperator(graph, s, L, A, alpha);
-    }, G, k, population_size, maxItr);
+    }, cmpIllegalColoring, G, k, population_size, maxItr);
 }
 
 

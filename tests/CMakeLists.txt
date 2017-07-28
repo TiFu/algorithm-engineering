@@ -21,7 +21,8 @@ set(TEST_SRCS main.cpp
         colouring/graph_colouring_test.cpp
         colouring/crossover/gpx_test.cpp
         colouring/init/greedy_saturation_test.cpp
-        colouring/ls/tabu_search_test.cpp)
+        colouring/ls/tabu_search_test.cpp
+        colouring/hca_test.cpp)
 
 add_executable(colouring_test ${INCLUDE} ${TEST_SRCS})
 target_link_libraries(colouring_test ${CORE_LIBS} gtest gmock)
