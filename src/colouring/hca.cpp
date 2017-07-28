@@ -9,7 +9,7 @@
 
 namespace graph_colouring {
 
-    configuration_t hybridColoringAlgorithm(const graph_access &G,
+    Configuration hybridColoringAlgorithm(const graph_access &G,
                                             size_t k,
                                             size_t population_size,
                                             size_t maxItr,
@@ -26,11 +26,11 @@ namespace graph_colouring {
                                                        alpha);
 
         }, [](const graph_access &G_,
-              const configuration_t &s1,
-              const configuration_t &s2) {
+              const Configuration &s1,
+              const Configuration &s2) {
             return graph_colouring::gpxCrossover(s1, s2);
         }, [L, A, alpha](const graph_access &graph,
-                         const configuration_t &s) {
+                         const Configuration &s) {
             return graph_colouring::tabuSearchOperator(graph, s, L, A, alpha);
         }, G, k, population_size, maxItr);
     }

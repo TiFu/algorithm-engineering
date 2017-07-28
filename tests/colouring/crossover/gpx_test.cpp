@@ -17,7 +17,7 @@ TEST(GraphColouringGPX, Simple) {
     NodeID I = 8;
     NodeID J = 9;
 
-    graph_colouring::configuration_t s1(10);
+    graph_colouring::Configuration s1(10);
 
     //Example from "Hybrid Evolutionary Algorithms for Graph Coloring"
     s1[A] = 0;
@@ -33,7 +33,7 @@ TEST(GraphColouringGPX, Simple) {
     s1[I] = 2;
     s1[J] = 2;
 
-    graph_colouring::configuration_t s2(10);
+    graph_colouring::Configuration s2(10);
 
     s2[C] = 0;
     s2[D] = 0;

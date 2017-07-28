@@ -8,9 +8,9 @@
 
 using namespace graph_colouring;
 
-typedef std::vector<configuration_t> population_t;
+typedef std::vector<Configuration> population_t;
 
-typedef std::function<configuration_t(
+typedef std::function<Configuration(
         const InitOperator &initOperator,
         const CrossoverOperator &crossoverOperator,
         const LSOperator &lsOperator,
@@ -19,7 +19,7 @@ typedef std::function<configuration_t(
         size_t population_size,
         size_t maxItr)> ColouringAlgorithm;
 
-configuration_t testAlgorithm(const ColouringAlgorithm &colouringAlgorithm,
+Configuration testAlgorithm(const ColouringAlgorithm &colouringAlgorithm,
                               const graph_access &G,
                               const size_t k,
                               const size_t population_size,
@@ -37,11 +37,11 @@ configuration_t testAlgorithm(const ColouringAlgorithm &colouringAlgorithm,
                                                    alpha);
 
     }, [](const graph_access &G_,
-          const configuration_t &s1,
-          const configuration_t &s2) {
+          const Configuration &s1,
+          const Configuration &s2) {
         return graph_colouring::gpxCrossover(s1, s2);
     }, [L, A, alpha](const graph_access &graph,
-                     const configuration_t &s) {
+                     const Configuration &s) {
         return graph_colouring::tabuSearchOperator(graph, s, L, A, alpha);
     }, G, k, population_size, maxItr);
 }

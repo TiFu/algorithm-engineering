@@ -28,7 +28,7 @@ TEST(GraphUtilToGraphvizStrigWithConfiguration, SimpleGraph) {
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);
 
-    graph_colouring::configuration_t s = {0, 1, 0, 1, 0, 2};
+    graph_colouring::Configuration s = {0, 1, 0, 1, 0, 2};
 
     const char *expected_graphviz_str =
             "graph G {\n" \
@@ -55,7 +55,7 @@ TEST(GraphUtilToGraphvizStrigWithConfiguration, SimpleGraphWithPartitionFlag) {
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);
 
-    graph_colouring::configuration_t s = {0, 1, 0, 1, 0, 2};
+    graph_colouring::Configuration s = {0, 1, 0, 1, 0, 2};
 
     const char *expected_graphviz_str =
             "graph G {\n" \

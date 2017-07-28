@@ -1,11 +1,11 @@
 #include "colouring/ls/tabu_search.h"
 
-graph_colouring::configuration_t graph_colouring::tabuSearchOperator(const graph_access &G,
-                                                                     const configuration_t &s,
+graph_colouring::Configuration graph_colouring::tabuSearchOperator(const graph_access &G,
+                                                                     const Configuration &s,
                                                                      const size_t L,
                                                                      const size_t A,
                                                                      const double alpha) {
-    configuration_t s_mutated(s);
+    Configuration s_mutated(s);
     std::uniform_int_distribution<size_t> distribution(0, A - 1);
     std::mt19937 generator;
     //tabu tenure

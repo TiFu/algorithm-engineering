@@ -8,19 +8,19 @@
 
 namespace graph_colouring {
 
-    typedef std::vector<Color> configuration_t;
+    typedef std::vector<Color> Configuration;
 
-    typedef std::function<configuration_t(const graph_access &G,
+    typedef std::function<Configuration(const graph_access &G,
                                           const size_t k)> InitOperator;
 
-    typedef std::function<configuration_t(const graph_access &G,
-                                          const configuration_t &s1,
-                                          const configuration_t &s2)> CrossoverOperator;
+    typedef std::function<Configuration(const graph_access &G,
+                                          const Configuration &s1,
+                                          const Configuration &s2)> CrossoverOperator;
 
-    typedef std::function<configuration_t(const graph_access &G,
-                                          const configuration_t &s)> LSOperator;
+    typedef std::function<Configuration(const graph_access &G,
+                                          const Configuration &s)> LSOperator;
 
-    configuration_t coloringAlgorithm(const InitOperator &initOperator,
+    Configuration coloringAlgorithm(const InitOperator &initOperator,
                                       const CrossoverOperator &crossoverOperator,
                                       const LSOperator &lsOperator,
                                       const graph_access &G,
@@ -28,7 +28,7 @@ namespace graph_colouring {
                                       size_t population_size,
                                       size_t maxItr);
 
-    configuration_t parallelColoringAlgorithm(const InitOperator &initOperator,
+    Configuration parallelColoringAlgorithm(const InitOperator &initOperator,
                                               const CrossoverOperator &crossoverOperator,
                                               const LSOperator &lsOperator,
                                               const graph_access &G,
@@ -36,17 +36,17 @@ namespace graph_colouring {
                                               size_t population_size,
                                               size_t maxItr);
 
-    size_t colorCount(const configuration_t &s);
+    size_t colorCount(const Configuration &s);
 
     bool allowedInClass(const graph_access &G,
-                        const configuration_t &c,
+                        const Configuration &c,
                         Color color,
                         NodeID nodeID);
 
     size_t numberOfConflictingNodes(const graph_access &G,
-                                    const configuration_t &s);
+                                    const Configuration &s);
 
     size_t numberOfConflictingEdges(const graph_access &G,
-                                    const configuration_t &s);
+                                    const Configuration &s);
 
 }

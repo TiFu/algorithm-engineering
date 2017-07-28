@@ -12,16 +12,16 @@ inline Color biggestColorClass(const std::vector<size_t> &colorDist) {
     return max;
 }
 
-graph_colouring::configuration_t graph_colouring::gpxCrossover(const graph_colouring::configuration_t &s1_org,
-                                                               const graph_colouring::configuration_t &s2_org) {
+graph_colouring::Configuration graph_colouring::gpxCrossover(const graph_colouring::Configuration &s1_org,
+                                                               const graph_colouring::Configuration &s2_org) {
     assert(graph_colouring::colorCount(s1_org) == graph_colouring::colorCount(s2_org));
 
-    configuration_t s1(s1_org);
-    configuration_t s2(s2_org);
+    Configuration s1(s1_org);
+    Configuration s2(s2_org);
 
     size_t k = graph_colouring::colorCount(s1);
 
-    configuration_t s(s1.size(), std::numeric_limits<Color>::max());
+    Configuration s(s1.size(), std::numeric_limits<Color>::max());
 
     std::vector<size_t> colorDistS1(k);
     for (auto color: s1) {
@@ -33,7 +33,7 @@ graph_colouring::configuration_t graph_colouring::gpxCrossover(const graph_colou
         colorDistS2[color]++;
     }
 
-    std::array<configuration_t *, 2> V = {&s1, &s2};
+    std::array<Configuration *, 2> V = {&s1, &s2};
     std::array<std::vector<size_t> *, 2> C = {&colorDistS1, &colorDistS2};
 
     for (Color l = 0; l < k; l++) {

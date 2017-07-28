@@ -11,7 +11,7 @@ TEST(GraphColouringTabuSearchOperator, SimpleGraph) {
     graph_access G;
     graph_io::readGraphWeighted(G, "../../input/simple.graph");
 
-    graph_colouring::configuration_t s_small_graph = {0, 2, 0, 1, 1, 0};
+    graph_colouring::Configuration s_small_graph = {0, 2, 0, 1, 1, 0};
 
     auto s_small_graph_opt = graph_colouring::tabuSearchOperator(G, s_small_graph, 10, 3, 2);
     ASSERT_EQ(s_small_graph_opt[0], 0);
@@ -25,7 +25,7 @@ TEST(GraphColouringTabuSearchOperator, SimpleGraph) {
 TEST(GraphColouringTabuSearchOperator, Miles250Graph) {
     graph_access G;
     graph_io::readGraphWeighted(G, "../../input/miles250-sorted.graph");
-    graph_colouring::configuration_t s_init = graph_colouring::initByGreedySaturation(G, 5);
+    graph_colouring::Configuration s_init = graph_colouring::initByGreedySaturation(G, 5);
     ASSERT_EQ(graph_colouring::numberOfConflictingEdges(G, s_init), 71);
 
     auto s_opt = graph_colouring::tabuSearchOperator(G, s_init, 100, 3, 2);

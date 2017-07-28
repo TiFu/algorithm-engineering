@@ -36,7 +36,7 @@ namespace graph_util {
     std::string toGraphvizStrig(const graph_access &G,
                                 const std::string &label = "G");
     std::string toGraphvizStrig(const graph_access &G,
-                                const graph_colouring::configuration_t &configuration,
+                                const graph_colouring::Configuration &configuration,
                                 const bool partitioned = false,
                                 const std::string &label = "G");
 }
