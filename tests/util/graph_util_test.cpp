@@ -28,22 +28,15 @@ TEST(GraphUtilToGraphvizStrigWithConfiguration, SimpleGraph) {
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);
 
-    configuration_t s;
-    s.resize(3);
-    s[0].insert(0);
-    s[0].insert(2);
-    s[0].insert(4);
-    s[1].insert(1);
-    s[1].insert(3);
-    s[2].insert(5);
+    configuration_t s = {0, 1, 0, 1, 0, 2};
 
     const char *expected_graphviz_str =
             "graph G {\n" \
         "    0 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
-        "    2 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
-        "    4 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
         "    1 [penwidth=3 color=\"0.333 0.5 0.5\"];\n" \
+        "    2 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
         "    3 [penwidth=3 color=\"0.333 0.5 0.5\"];\n" \
+        "    4 [penwidth=3 color=\"0 0.5 0.5\"];\n" \
         "    5 [penwidth=3 color=\"0.667 0.5 0.5\"];\n" \
         "    0 -- 1;\n" \
         "    0 -- 5;\n" \
@@ -62,14 +55,7 @@ TEST(GraphUtilToGraphvizStrigWithConfiguration, SimpleGraphWithPartitionFlag) {
     std::string graph_filename = "../../input/simple.graph";
     graph_io::readGraphWeighted(G, graph_filename);
 
-    configuration_t s;
-    s.resize(3);
-    s[0].insert(0);
-    s[0].insert(2);
-    s[0].insert(4);
-    s[1].insert(1);
-    s[1].insert(3);
-    s[2].insert(5);
+    configuration_t s = {0, 1, 0, 1, 0, 2};
 
     const char *expected_graphviz_str =
             "graph G {\n" \

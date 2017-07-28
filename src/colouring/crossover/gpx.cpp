@@ -1,41 +1,66 @@
 #include "colouring/crossover/gpx.h"
 
 #include <algorithm>
-#include <array>
+
+inline Color biggestColorClass(const std::vector<size_t> &colorDist) {
+    Color max = 0;
+    for(Color c = 0; c < colorDist.size(); c++) {
+        if(colorDist[c] > colorDist[max]) {
+            max = c;
+        }
+    }
+    return max;
+}
 
 configuration_t graph_colouring::gpxCrossover(const configuration_t &s1_org,
                                               const configuration_t &s2_org) {
-    std::mt19937 generator;
+    assert(graph_colouring::colorCount(s1_org) == graph_colouring::colorCount(s2_org));
 
-    auto s1 = graph_colouring::clone(s1_org);
-    auto s2 = graph_colouring::clone(s2_org);
+    configuration_t s1(s1_org);
+    configuration_t s2(s2_org);
 
-    configuration_t s;
-    s.resize(s1.size());
+    size_t k = graph_colouring::colorCount(s1);
+
+    configuration_t s(s1.size(), std::numeric_limits<Color>::max());
+
+    std::vector<size_t> colorDistS1(k);
+    for(auto color: s1) {
+        colorDistS1[color]++;
+    }
+
+    std::vector<size_t> colorDistS2(k);
+    for(auto color: s2) {
+        colorDistS2[color]++;
+    }
 
     std::array<configuration_t *, 2> V = {&s1, &s2};
+    std::array<std::vector<size_t> *, 2> C = {&colorDistS1, &colorDistS2};
 
-    for (size_t l = 0; l < s1.size(); l++) {
+    for (Color l = 0; l < k; l++) {
         auto A = (l & 1);
-        auto v = std::max_element(V[A]->begin(),
-                                  V[A]->end(),
-                                  [](const partition_t &a, const partition_t &b) {
-                                      return a.size() < b.size();
-                                  });
-        s[l].insert(v->begin(), v->end());
-        v->clear();
-        for (auto n : s[l]) {
-            for (auto &p : *V[1 - A]) {
-                p.erase(n);
+        auto v = biggestColorClass(*C[A]);
+
+        for(NodeID n = 0; n < s.size(); n++) {
+            if((*V[A])[n] == v) {
+                s[n] = l;
+                (*V[A])[n] = std::numeric_limits<Color>::max();
+                (*C[A])[v]--;
+                (*C[1 - A])[(*V[1 - A])[n]]--;
+                (*V[1 - A])[n] = std::numeric_limits<Color>::max();
             }
         }
     }
-    partition_t rest;
-    for (auto &p : *V[0]) {
-        rest.insert(p.begin(), p.end());
+
+    std::mt19937 generator;
+    std::uniform_int_distribution<Color> distribution(0,
+                                                      static_cast<Color>(colorDistS1.size() - 1));
+    Color target = distribution(generator);
+
+    for (auto &color : s) {
+        if(color == std::numeric_limits<Color>::max()) {
+            color = target;
+        }
     }
-    std::uniform_int_distribution<size_t> distribution(0, s.size() - 1);
-    s[distribution(generator)].insert(rest.begin(), rest.end());
 
     return s;
 }

@@ -28,7 +28,7 @@ std::string graph_util::toGraphvizStrig(const graph_access &G,
     std::stringstream ss;
 
     std::vector<std::string> colors;
-    colors.resize(configuration.size());
+    colors.resize(graph_colouring::colorCount(configuration));
     double hueFactor = 1.0 / colors.size();
     for (int i = 0; i < colors.size(); i++) {
         std::stringstream colorSS;
@@ -38,18 +38,18 @@ std::string graph_util::toGraphvizStrig(const graph_access &G,
 
     ss << "graph " << label << " {\n";
     if (partitioned) {
-        for (int i = 0; i < configuration.size(); i++) {
+        for (int i = 0; i < colors.size(); i++) {
             ss << "    subgraph cluster_" << i << " {\n";
-            for (auto n : configuration[i]) {
-                ss << "        " << n << " [penwidth=3 color=" << colors[i] << "];\n";
+            for (size_t n = 0; n < configuration.size(); n++) {
+                if(configuration[n] == i) {
+                    ss << "        " << n << " [penwidth=3 color=" << colors[configuration[n]] << "];\n";
+                }
             }
             ss << "    }\n";
         }
     } else {
-        for (int i = 0; i < configuration.size(); i++) {
-            for (auto n : configuration[i]) {
-                ss << "    " << n << " [penwidth=3 color=" << colors[i] << "];\n";
-            }
+        for (size_t n = 0; n < configuration.size(); n++) {
+                ss << "    " << n << " [penwidth=3 color=" << colors[configuration[n]] << "];\n";
         }
     }
 

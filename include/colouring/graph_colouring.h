@@ -6,8 +6,7 @@
 #include <random>
 #include <set>
 
-typedef std::set<NodeID> partition_t;
-typedef std::vector<partition_t> configuration_t;
+typedef std::vector<Color> configuration_t;
 
 namespace graph_colouring {
 
@@ -37,9 +36,12 @@ namespace graph_colouring {
                                               size_t population_size,
                                               size_t maxItr);
 
-    bool allowedInClass(const graph_access &G, const partition_t &p, NodeID nodeID);
+    size_t colorCount(const configuration_t &s);
 
-    size_t numberOfAllowedClasses(const graph_access &G, const configuration_t &c, NodeID nodeID);
+    bool allowedInClass(const graph_access &G,
+                        const configuration_t &c,
+                        Color color,
+                        NodeID nodeID);
 
     size_t numberOfConflictingNodes(const graph_access &G,
                                     const configuration_t &s);
@@ -47,5 +49,4 @@ namespace graph_colouring {
     size_t numberOfConflictingEdges(const graph_access &G,
                                     const configuration_t &s);
 
-    configuration_t clone(const configuration_t &s);
 }

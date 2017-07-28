@@ -1,7 +1,5 @@
 #include "colouring/graph_colouring.h"
 
-#include "util/graph_util.h"
-
 #include <atomic>
 #include <algorithm>
 #include <thread>
@@ -9,43 +7,39 @@
 
 namespace graph_colouring {
 
-    bool allowedInClass(const graph_access &G, const partition_t &p, const NodeID nodeID) {
+    size_t colorCount(const configuration_t &s) {
+        std::vector<bool> usedColor(s.size());
+        size_t color_count = 0;
+        for (auto n : s) {
+            //max for partial colorings
+            if (n != std::numeric_limits<Color>::max() && !usedColor[n]) {
+                usedColor[n] = true;
+                color_count++;
+            }
+        }
+        return color_count;
+    }
+
+    bool allowedInClass(const graph_access &G,
+                        const configuration_t &c,
+                        const Color color,
+                        const NodeID nodeID) {
         for (auto neighbour : G.neighbours(nodeID)) {
-            if (p.count(neighbour) > 0) {
+            if (c[neighbour] == color) {
                 return false;
             }
         }
         return true;
     }
 
-    size_t
-    numberOfAllowedClasses(const graph_access &G, const configuration_t &c, const NodeID nodeID) {
-        size_t count = 0;
-        for (auto &p : c) {
-            count += static_cast<size_t>(allowedInClass(G, p, nodeID));
-        }
-        return count;
-    }
-
-    configuration_t clone(const configuration_t &s) {
-        configuration_t s_copy;
-        s_copy.resize(s.size());
-        for (size_t i = 0; i < s.size(); i++) {
-            s_copy[i].insert(s[i].begin(), s[i].end());
-        }
-        return s_copy;
-    }
-
     size_t numberOfConflictingNodes(const graph_access &G,
                                     const configuration_t &s) {
         size_t count = 0;
-        for (auto &p : s) {
-            for (auto &n : p) {
-                for (auto neighbour : G.neighbours(n)) {
-                    if (p.count(neighbour) > 0) {
-                        count++;
-                        break;
-                    }
+        for (size_t n = 0; n < s.size(); n++) {
+            for (auto neighbour : G.neighbours(n)) {
+                if (s[n] == s[neighbour]) {
+                    count++;
+                    break;
                 }
             }
         }
@@ -55,10 +49,10 @@ namespace graph_colouring {
     size_t numberOfConflictingEdges(const graph_access &G,
                                     const configuration_t &s) {
         size_t count = 0;
-        for (auto &p : s) {
-            for (auto &n : p) {
-                for (auto neighbour : G.neighbours(n)) {
-                    count += static_cast<size_t>(p.count(neighbour) > 0);
+        for (size_t n = 0; n < s.size(); n++) {
+            for (auto neighbour : G.neighbours(n)) {
+                if (s[n] == s[neighbour]) {
+                    count++;
                 }
             }
         }
@@ -73,15 +67,13 @@ namespace graph_colouring {
                                       size_t k,
                                       size_t population_size,
                                       size_t maxItr) {
-        std::mt19937 generator;
-
-        std::vector<configuration_t> P;
-        P.resize(population_size);
+        std::vector<configuration_t> P(population_size);
 
         for (size_t i = 0; i < population_size; i++) {
             P[i] = initOperator(G, k);
         }
 
+        std::mt19937 generator;
         for (size_t itr = 0; itr < maxItr; itr++) {
             const size_t mating_population_size = population_size / 2;
             std::uniform_int_distribution<size_t> distribution(0, population_size - 1);

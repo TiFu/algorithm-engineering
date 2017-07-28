@@ -12,8 +12,11 @@ TEST(GraphColouringGreedySaturation, SimpleGraph) {
 
     auto s_init = graph_colouring::initByGreedySaturation(G,3);
 
-    EXPECT_EQ(s_init.size(), 3);
-    EXPECT_THAT(s_init[0], testing::ElementsAre(0, 2, 4));
-    EXPECT_THAT(s_init[1], testing::ElementsAre(1, 3));
-    EXPECT_THAT(s_init[2], testing::ElementsAre(5));
+    EXPECT_EQ(s_init.size(), G.number_of_nodes());
+    ASSERT_EQ(s_init[0], 0);
+    ASSERT_EQ(s_init[1], 1);
+    ASSERT_EQ(s_init[2], 0);
+    ASSERT_EQ(s_init[3], 1);
+    ASSERT_EQ(s_init[4], 0);
+    ASSERT_EQ(s_init[5], 2);
 }

@@ -12,19 +12,16 @@
 TEST(GraphColouringTabuSearchOperator, SimpleGraph) {
     graph_access G;
     graph_io::readGraphWeighted(G, "../../input/simple.graph");
-    configuration_t s_small_graph;
-    s_small_graph.resize(3);
-    s_small_graph[0].insert(0);
-    s_small_graph[0].insert(1);
-    s_small_graph[0].insert(2);
-    s_small_graph[1].insert(3);
-    s_small_graph[1].insert(4);
-    s_small_graph[1].insert(5);
+
+    configuration_t s_small_graph = {0, 2, 0, 1, 1, 0};
 
     auto s_small_graph_opt = graph_colouring::tabuSearchOperator(G, s_small_graph, 10, 3, 2);
-    ASSERT_THAT(s_small_graph_opt[0], testing::ElementsAre(0, 2));
-    ASSERT_THAT(s_small_graph_opt[1], testing::ElementsAre(3, 5));
-    ASSERT_THAT(s_small_graph_opt[2], testing::ElementsAre(1, 4));
+    ASSERT_EQ(s_small_graph_opt[0], 0);
+    ASSERT_EQ(s_small_graph_opt[1], 2);
+    ASSERT_EQ(s_small_graph_opt[2], 0);
+    ASSERT_EQ(s_small_graph_opt[3], 1);
+    ASSERT_EQ(s_small_graph_opt[4], 2);
+    ASSERT_EQ(s_small_graph_opt[5], 1);
 }
 
 TEST(GraphColouringTabuSearchOperator, Miles250Graph) {
