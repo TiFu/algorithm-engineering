@@ -1,7 +1,5 @@
 #include "colouring/ls/tabu_search.h"
 
-#include "util/graph_util.h"
-
 configuration_t graph_colouring::tabuSearchOperator(const graph_access &G,
                                                     const configuration_t &s,
                                                     const size_t L,
@@ -33,9 +31,9 @@ configuration_t graph_colouring::tabuSearchOperator(const graph_access &G,
                         if (i == c_v || tabu_table[v * k + c_v] > l) {
                             continue;
                         }
-                        configuration_t s_new(s_mutated);
-                        s_new[v] = i;
-                        auto new_score = graph_colouring::numberOfConflictingEdges(G, s_new);
+                        s_mutated[v] = i;
+                        auto new_score = graph_colouring::numberOfConflictingEdges(G, s_mutated);
+                        s_mutated[v] = c_v;
                         if (new_score <= best_score) {
                             best_v = v;
                             best_i = i;

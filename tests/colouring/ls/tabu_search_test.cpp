@@ -3,8 +3,6 @@
 #include "colouring/init/greedy_saturation.h"
 #include "colouring/ls/tabu_search.h"
 
-#include "util/graph_util.h"
-
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
 #include <gmock/gmock.h>
