@@ -6,9 +6,9 @@
 #include <random>
 #include <set>
 
-typedef std::vector<Color> configuration_t;
-
 namespace graph_colouring {
+
+    typedef std::vector<Color> configuration_t;
 
     typedef std::function<configuration_t(const graph_access &G,
                                           const size_t k)> InitOperator;

@@ -9,7 +9,7 @@ inline std::set<NodeID> toSet(const graph_access &G) {
 }
 
 static size_t numberOfAllowedClasses(const graph_access &G,
-                                     const configuration_t &s,
+                                     const graph_colouring::configuration_t &s,
                                      const NodeID nodeID,
                                      const size_t k) {
     size_t count = 0;
@@ -20,7 +20,7 @@ static size_t numberOfAllowedClasses(const graph_access &G,
 }
 
 static NodeID nextNodeWithMinAllowedClasses(const graph_access &G,
-                                            const configuration_t &c,
+                                            const graph_colouring::configuration_t &c,
                                             const std::set<NodeID> &nodes,
                                             const size_t k) {
     assert(!nodes.empty());
@@ -36,8 +36,8 @@ static NodeID nextNodeWithMinAllowedClasses(const graph_access &G,
     return targetNode;
 }
 
-configuration_t graph_colouring::initByGreedySaturation(const graph_access &G,
-                                                        const size_t k) {
+graph_colouring::configuration_t graph_colouring::initByGreedySaturation(const graph_access &G,
+                                                                         const size_t k) {
     configuration_t s(G.number_of_nodes(), std::numeric_limits<NodeID>::max());
 
     auto nodes = toSet(G);

@@ -4,16 +4,16 @@
 
 inline Color biggestColorClass(const std::vector<size_t> &colorDist) {
     Color max = 0;
-    for(Color c = 0; c < colorDist.size(); c++) {
-        if(colorDist[c] > colorDist[max]) {
+    for (Color c = 0; c < colorDist.size(); c++) {
+        if (colorDist[c] > colorDist[max]) {
             max = c;
         }
     }
     return max;
 }
 
-configuration_t graph_colouring::gpxCrossover(const configuration_t &s1_org,
-                                              const configuration_t &s2_org) {
+graph_colouring::configuration_t graph_colouring::gpxCrossover(const graph_colouring::configuration_t &s1_org,
+                                                               const graph_colouring::configuration_t &s2_org) {
     assert(graph_colouring::colorCount(s1_org) == graph_colouring::colorCount(s2_org));
 
     configuration_t s1(s1_org);
@@ -24,12 +24,12 @@ configuration_t graph_colouring::gpxCrossover(const configuration_t &s1_org,
     configuration_t s(s1.size(), std::numeric_limits<Color>::max());
 
     std::vector<size_t> colorDistS1(k);
-    for(auto color: s1) {
+    for (auto color: s1) {
         colorDistS1[color]++;
     }
 
     std::vector<size_t> colorDistS2(k);
-    for(auto color: s2) {
+    for (auto color: s2) {
         colorDistS2[color]++;
     }
 
@@ -40,8 +40,8 @@ configuration_t graph_colouring::gpxCrossover(const configuration_t &s1_org,
         auto A = (l & 1);
         auto v = biggestColorClass(*C[A]);
 
-        for(NodeID n = 0; n < s.size(); n++) {
-            if((*V[A])[n] == v) {
+        for (NodeID n = 0; n < s.size(); n++) {
+            if ((*V[A])[n] == v) {
                 s[n] = l;
                 (*V[A])[n] = std::numeric_limits<Color>::max();
                 (*C[A])[v]--;
@@ -57,7 +57,7 @@ configuration_t graph_colouring::gpxCrossover(const configuration_t &s1_org,
     Color target = distribution(generator);
 
     for (auto &color : s) {
-        if(color == std::numeric_limits<Color>::max()) {
+        if (color == std::numeric_limits<Color>::max()) {
             color = target;
         }
     }

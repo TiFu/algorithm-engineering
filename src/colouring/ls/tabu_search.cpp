@@ -1,16 +1,16 @@
 #include "colouring/ls/tabu_search.h"
 
-configuration_t graph_colouring::tabuSearchOperator(const graph_access &G,
-                                                    const configuration_t &s,
-                                                    const size_t L,
-                                                    const size_t A,
-                                                    const double alpha) {
+graph_colouring::configuration_t graph_colouring::tabuSearchOperator(const graph_access &G,
+                                                                     const configuration_t &s,
+                                                                     const size_t L,
+                                                                     const size_t A,
+                                                                     const double alpha) {
     configuration_t s_mutated(s);
     std::uniform_int_distribution<size_t> distribution(0, A - 1);
     std::mt19937 generator;
     //tabu tenure
     auto tl = static_cast<size_t>(distribution(generator)
-                                          + alpha * graph_colouring::numberOfConflictingNodes(G, s_mutated));
+                                  + alpha * graph_colouring::numberOfConflictingNodes(G, s_mutated));
 
 
     //Number of classes

@@ -22,7 +22,7 @@ std::string graph_util::toGraphvizStrig(const graph_access &G,
 }
 
 std::string graph_util::toGraphvizStrig(const graph_access &G,
-                                        const configuration_t &configuration,
+                                        const graph_colouring::configuration_t &configuration,
                                         const bool partitioned,
                                         const std::string &label) {
     std::stringstream ss;
