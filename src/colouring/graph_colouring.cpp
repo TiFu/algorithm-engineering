@@ -69,15 +69,15 @@ namespace graph_colouring {
                                     size_t population_size,
                                     size_t maxItr) {
         std::vector<Configuration> P(population_size);
+        std::mt19937 generator;
+        const size_t mating_population_size = population_size / 2;
+        std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
 
         for (size_t i = 0; i < population_size; i++) {
             P[i] = initOperator(G, k);
         }
 
-        std::mt19937 generator;
         for (size_t itr = 0; itr < maxItr; itr++) {
-            const size_t mating_population_size = population_size / 2;
-            std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
             for (size_t i = 0; i < mating_population_size; i++) {
                 std::array<Configuration *, 2> parents = {&P[distribution(generator)], &P[distribution(generator)]};
 
@@ -125,13 +125,7 @@ namespace graph_colouring {
         //lock[i] = true -> i-th parent is free for mating
         std::vector<std::atomic<bool>> lock(population_size);
 
-#pragma omp parallel for
-        for (size_t i = 0; i < population_size; i++) {
-            P[i] = initOperator(G, k);
-            lock[i].store(true);
-        }
-
-#pragma omp parallel
+#       pragma omp parallel
         {
             auto mating_population_size = population_size / 2;
             auto init_seed = static_cast<seed_type>
@@ -139,7 +133,14 @@ namespace graph_colouring {
             init_seed += static_cast<seed_type>(omp_get_thread_num());
             std::mt19937 generator(init_seed);
             std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
-#pragma omp for collapse(2)
+
+            #pragma omp for
+            for (size_t i = 0; i < population_size; i++) {
+                P[i] = initOperator(G, k);
+                lock[i].store(true);
+            }
+
+            #pragma omp for collapse(2)
             for (size_t itr = 0; itr < maxItr; itr++) {
                 for (size_t i = 0; i < mating_population_size; i++) {
                     auto p1 = chooseParent(lock, generator, distribution);

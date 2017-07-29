@@ -19,7 +19,7 @@ TEST(GraphColouringParallelHCA, miles250_Graph_k8) {
     const size_t k = 8;
     const size_t population_size = 10;
     const size_t maxItr = 100;
-    auto s_best = graph_colouring::hybridColoringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
+    auto s_best = graph_colouring::hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
     EXPECT_EQ(graph_colouring::numberOfConflictingEdges(G, s_best), 0);
 }
 
@@ -35,6 +35,6 @@ TEST(GraphColouringParallelHCA, miles250_Graph_k7) {
     const size_t k = 7;
     const size_t population_size = 10;
     const size_t maxItr = 100;
-    auto s_best = graph_colouring::hybridColoringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
+    auto s_best = graph_colouring::hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
     EXPECT_EQ(graph_colouring::numberOfConflictingEdges(G, s_best), 4);
 }

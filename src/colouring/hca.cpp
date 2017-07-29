@@ -13,21 +13,33 @@ namespace graph_colouring {
                graph_colouring::numberOfConflictingEdges(G, b);
     }
 
-    Configuration hybridColoringAlgorithm(const graph_access &G,
-                                          size_t k,
-                                          size_t population_size,
-                                          size_t maxItr,
-                                          size_t L,
-                                          size_t A,
-                                          double alpha) {
-        return graph_colouring::coloringAlgorithm([L, A, alpha](const graph_access &graph,
-                                                                const size_t colors) {
+    typedef std::function<Configuration(
+            const InitOperator &initOperator,
+            const CrossoverOperator &crossoverOperator,
+            const LSOperator &lsOperator,
+            const ConfugirationCompare &cmp,
+            const graph_access &G,
+            size_t k,
+            size_t population_size,
+            size_t maxItr)> ColouringAlgorithm;
+
+    Configuration hybridColouringAlgorithmTemplate(const ColouringAlgorithm &colouringAlgorithm,
+                                                   const graph_access &G,
+                                                   const size_t k,
+                                                   const size_t population_size,
+                                                   const size_t maxItr,
+                                                   const size_t L,
+                                                   const size_t A,
+                                                   const double alpha) {
+        return colouringAlgorithm([L, A, alpha](const graph_access &graph,
+                                                const size_t colors) {
             auto s_init = graph_colouring::initByGreedySaturation(graph, colors);
             return graph_colouring::tabuSearchOperator(graph,
                                                        s_init,
                                                        L,
                                                        A,
                                                        alpha);
+
         }, [](const graph_access &G_,
               const Configuration &s1,
               const Configuration &s2) {
@@ -36,6 +48,29 @@ namespace graph_colouring {
                          const Configuration &s) {
             return graph_colouring::tabuSearchOperator(graph, s, L, A, alpha);
         }, cmpIllegalColoring, G, k, population_size, maxItr);
+    }
+
+
+    Configuration hybridColouringAlgorithm(const graph_access &G,
+                                           size_t k,
+                                           size_t population_size,
+                                           size_t maxItr,
+                                           size_t L,
+                                           size_t A,
+                                           double alpha) {
+        return hybridColouringAlgorithmTemplate(coloringAlgorithm,
+                                                G, k, population_size, maxItr, L, A, alpha);
+    }
+
+    Configuration parallelHybridColouringAlgorithm(const graph_access &G,
+                                                   size_t k,
+                                                   size_t population_size,
+                                                   size_t maxItr,
+                                                   size_t L,
+                                                   size_t A,
+                                                   double alpha) {
+        return hybridColouringAlgorithmTemplate(parallelColoringAlgorithm,
+                                                G, k, population_size, maxItr, L, A, alpha);
     }
 
 }
