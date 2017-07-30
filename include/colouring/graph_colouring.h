@@ -109,12 +109,6 @@ namespace graph_colouring {
                                      size_t population_size,
                                      size_t maxItr);
 
-    Configuration parallelColouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
-                                             const graph_access &G,
-                                             size_t k,
-                                             size_t population_size,
-                                             size_t maxItr);
-
     class InvalidColouringCategory : public ColouringCategory {
     public:
         InvalidColouringCategory(const std::vector<InitOperator> &initOperators,

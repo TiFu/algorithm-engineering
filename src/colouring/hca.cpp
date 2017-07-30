@@ -6,23 +6,16 @@
 
 namespace graph_colouring {
 
-    typedef std::function<Configuration(
-            const std::vector<std::shared_ptr<ColouringCategory>> &categories,
+    Configuration hybridColouringAlgorithm(
             const graph_access &G,
-            size_t k,
-            size_t population_size,
-            size_t maxItr)> ColouringAlgorithm;
-
-    static Configuration hybridColouringAlgorithmTemplate(const ColouringAlgorithm &colouringAlgorithm,
-                                                          const graph_access &G,
-                                                          const size_t k,
-                                                          const size_t population_size,
-                                                          const size_t maxItr,
-                                                          const size_t L,
-                                                          const size_t A,
-                                                          const double alpha) {
+            const size_t k,
+            const size_t population_size,
+            const size_t maxItr,
+            const size_t L,
+            const size_t A,
+            const double alpha) {
         std::vector<InitOperator> hcaInitOps = {[L, A, alpha](const graph_access &graph,
-                                               const size_t colors) {
+                                                              const size_t colors) {
             return graph_colouring::tabuSearchOperator(graph,
                                                        graph_colouring::initByGreedySaturation(graph, colors),
                                                        L,
@@ -32,8 +25,8 @@ namespace graph_colouring {
         }};
 
         std::vector<CrossoverOperator> hcaCrossoverOps = {[](const graph_access &G_,
-                                              const Configuration &s1,
-                                              const Configuration &s2) {
+                                                             const Configuration &s1,
+                                                             const Configuration &s2) {
             return graph_colouring::gpxCrossover(s1, s2);
         }};
 
@@ -53,28 +46,4 @@ namespace graph_colouring {
                                   population_size,
                                   maxItr);
     }
-
-
-    Configuration hybridColouringAlgorithm(const graph_access &G,
-                                           size_t k,
-                                           size_t population_size,
-                                           size_t maxItr,
-                                           size_t L,
-                                           size_t A,
-                                           double alpha) {
-        return hybridColouringAlgorithmTemplate(colouringAlgorithm,
-                                                G, k, population_size, maxItr, L, A, alpha);
-    }
-
-    Configuration parallelHybridColouringAlgorithm(const graph_access &G,
-                                                   size_t k,
-                                                   size_t population_size,
-                                                   size_t maxItr,
-                                                   size_t L,
-                                                   size_t A,
-                                                   double alpha) {
-        return hybridColouringAlgorithmTemplate(parallelColouringAlgorithm,
-                                                G, k, population_size, maxItr, L, A, alpha);
-    }
-
 }

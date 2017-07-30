@@ -1,4 +1,5 @@
 #include <debug.h>
+#include <omp.h>
 #include "benchmark/benchmark.h"
 
 #include "data_structure/io/graph_io.h"
@@ -19,11 +20,11 @@ void BM_sequential(benchmark::State &state,
         const size_t k = 8;
         const size_t population_size = 1000;
         const size_t maxItr = 20;
+        omp_set_num_threads(1);
         auto result = hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
         assert(graph_colouring::numberOfConflictingEdges(G, result) == 0);
     }
 }
-
 
 void BM_parallel(benchmark::State &state,
                  const char *graphFile) {
@@ -37,15 +38,16 @@ void BM_parallel(benchmark::State &state,
         const size_t k = 8;
         const size_t population_size = 1000;
         const size_t maxItr = 20;
-        auto result = parallelHybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
+        auto result = hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
         assert(graph_colouring::numberOfConflictingEdges(G, result) == 0);
     }
 }
 
+BENCHMARK_CAPTURE(BM_parallel, miles250,
+                  "../../input/miles250-sorted.graph")->Unit(benchmark::kMillisecond);
+
 BENCHMARK_CAPTURE(BM_sequential, miles250,
                   "../../input/miles250-sorted.graph")->Unit(benchmark::kMillisecond);
 
-BENCHMARK_CAPTURE(BM_parallel, miles250,
-                  "../../input/miles250-sorted.graph")->Unit(benchmark::kMillisecond);
 
 BENCHMARK_MAIN()

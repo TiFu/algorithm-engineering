@@ -59,45 +59,6 @@ namespace graph_colouring {
         return count / 2;
     }
 
-    Configuration colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
-                                     const graph_access &G,
-                                     size_t k,
-                                     size_t population_size,
-                                     size_t maxItr) {
-        assert(!categories.empty());
-
-        std::vector<Configuration> P(population_size);
-        std::mt19937 generator;
-        const size_t mating_population_size = population_size / 2;
-
-        std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
-        std::uniform_int_distribution<size_t> initOprDist(0, categories[0]->initOperators.size() - 1);
-        std::uniform_int_distribution<size_t> crossoverOprOprDist(0, categories[0]->crossoverOperators.size() - 1);
-        std::uniform_int_distribution<size_t> lsOprOprDist(0, categories[0]->lsOperators.size() - 1);
-
-        for (size_t i = 0; i < population_size; i++) {
-            P[i] = categories[0]->initOperators[initOprDist(generator)](G, k);
-        }
-
-        for (size_t itr = 0; itr < maxItr; itr++) {
-            for (size_t i = 0; i < mating_population_size; i++) {
-                std::array<Configuration *, 2> parents = {&P[distribution(generator)], &P[distribution(generator)]};
-
-                auto weakerParent = static_cast<size_t>(categories[0]->compare(G, *parents[0], *parents[1]));
-
-                auto crossoverOp = categories[0]->crossoverOperators[crossoverOprOprDist(generator)];
-                auto lsOp = categories[0]->lsOperators[lsOprOprDist(generator)];
-
-                *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
-            }
-        }
-        return *std::max_element(P.begin(),
-                                 P.end(),
-                                 [&G, &categories](const Configuration &a, const Configuration &b) {
-                                     return categories[0]->compare(G, a, b);
-                                 });
-    }
-
     inline size_t chooseParent(std::vector<std::atomic<bool>> &lock,
                                std::mt19937 &generator,
                                std::uniform_int_distribution<size_t> &distribution) {
@@ -110,7 +71,7 @@ namespace graph_colouring {
         return nextTry;
     }
 
-    Configuration parallelColouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
+    Configuration colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
                                              const graph_access &G,
                                              const size_t k,
                                              const size_t population_size,

@@ -11,11 +11,4 @@ namespace graph_colouring {
                                           size_t A,
                                           double alpha);
 
-    Configuration parallelHybridColouringAlgorithm(const graph_access &G,
-                                                  size_t k,
-                                                  size_t population_size,
-                                                  size_t maxItr,
-                                                  size_t L,
-                                                  size_t A,
-                                                  double alpha);
 }
