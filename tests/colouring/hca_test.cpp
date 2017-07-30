@@ -26,7 +26,7 @@ TEST(HybridColouringAlgorithm, miles250_Graph_random_selection) {
     const size_t maxItr = 100;
 
     std::vector<InitOperator> hcaInitOps = {[L, A, alpha](const graph_access &graph,
-                                           const size_t colors) {
+                                                          const size_t colors) {
         return tabuSearchOperator(graph,
                                   initByGreedySaturation(graph, colors),
                                   L,
