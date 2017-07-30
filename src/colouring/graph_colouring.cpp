@@ -125,7 +125,11 @@ namespace graph_colouring {
         //lock[i] = true -> i-th parent is free for mating
         std::vector<std::atomic<bool>> lock(population_size);
 
-        #pragma omp parallel
+        if (4*omp_get_max_threads() > population_size) {
+            std::cerr << "WARNING: Make sure that population_size is bigger than 4*number_cores\n";
+        }
+
+#pragma omp parallel
         {
             typedef std::mt19937::result_type seed_type;
             typename std::chrono::system_clock seed_clock;
@@ -140,13 +144,13 @@ namespace graph_colouring {
             std::uniform_int_distribution<size_t> crossoverOprOprDist(0, crossoverOperator.size() - 1);
             std::uniform_int_distribution<size_t> lsOprOprDist(0, lsOperator.size() - 1);
 
-            #pragma omp for
+#pragma omp for
             for (size_t i = 0; i < population_size; i++) {
                 P[i] = initOperator[initOprDist(generator)](G, k);
                 lock[i].store(true);
             }
 
-            #pragma omp for collapse(2) //schedule(guided)
+#pragma omp for collapse(2) //schedule(guided)
             for (size_t itr = 0; itr < maxItr; itr++) {
                 for (size_t i = 0; i < mating_population_size; i++) {
                     auto p1 = chooseParent(lock, generator, distribution);
