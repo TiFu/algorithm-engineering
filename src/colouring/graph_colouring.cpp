@@ -3,7 +3,6 @@
 #include <atomic>
 #include <algorithm>
 #include <thread>
-#include <memory>
 #include <omp.h>
 
 namespace graph_colouring {
@@ -36,7 +35,7 @@ namespace graph_colouring {
     size_t numberOfConflictingNodes(const graph_access &G,
                                     const Configuration &s) {
         size_t count = 0;
-        for (size_t n = 0; n < s.size(); n++) {
+        for (NodeID n = 0; n < s.size(); n++) {
             for (auto neighbour : G.neighbours(n)) {
                 if (s[n] == s[neighbour]) {
                     count++;
@@ -50,7 +49,7 @@ namespace graph_colouring {
     size_t numberOfConflictingEdges(const graph_access &G,
                                     const Configuration &s) {
         size_t count = 0;
-        for (size_t n = 0; n < s.size(); n++) {
+        for (NodeID n = 0; n < s.size(); n++) {
             for (auto neighbour : G.neighbours(n)) {
                 if (s[n] == s[neighbour]) {
                     count++;
@@ -86,11 +85,10 @@ namespace graph_colouring {
 
                 auto weakerParent = static_cast<size_t>(categories[0]->compare(G, *parents[0], *parents[1]));
 
-                *parents[weakerParent] = categories[0]->lsOperators[lsOprOprDist(generator)](G,
-                                                                                             categories[0]->crossoverOperators[crossoverOprOprDist(
-                                                                                                     generator)](G,
-                                                                                                                 *parents[0],
-                                                                                                                 *parents[1]));
+                auto crossoverOp = categories[0]->crossoverOperators[crossoverOprOprDist(generator)];
+                auto lsOp = categories[0]->lsOperators[lsOprOprDist(generator)];
+
+                *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
             }
         }
         return *std::max_element(P.begin(),
@@ -156,11 +154,11 @@ namespace graph_colouring {
 
                     std::array<Configuration *, 2> parents = {&P[p1], &P[p2]};
                     auto weakerParent = static_cast<size_t>(categories[0]->compare(G, *parents[0], *parents[1]));
-                    *parents[weakerParent] = categories[0]->lsOperators[lsOprOprDist(generator)](G,
-                                                                                                 categories[0]->crossoverOperators[crossoverOprOprDist(
-                                                                                                         generator)](G,
-                                                                                                                     *parents[0],
-                                                                                                                     *parents[1]));
+
+                    auto crossoverOp = categories[0]->crossoverOperators[crossoverOprOprDist(generator)];
+                    auto lsOp = categories[0]->lsOperators[lsOprOprDist(generator)];
+
+                    *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
 
                     lock[p1].store(true);
                     lock[p2].store(true);
