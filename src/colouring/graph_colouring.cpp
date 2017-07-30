@@ -72,21 +72,21 @@ namespace graph_colouring {
         return nextTry;
     }
 
-    Configuration colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
-                                     const graph_access &G,
-                                     const size_t k,
-                                     const size_t population_size,
-                                     const size_t maxItr) {
+    std::vector<Configuration> colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
+                                                  const graph_access &G,
+                                                  const size_t k,
+                                                  const size_t population_size,
+                                                  const size_t maxItr) {
         assert(!categories.empty());
-
-        std::vector<Configuration> P(categories.size() * population_size);
-
-        //lock[i] = true -> i-th parent is free for mating
-        std::vector<std::atomic<bool>> isFree(categories.size() * population_size);
 
         if (4 * omp_get_max_threads() > categories.size() * population_size) {
             std::cerr << "WARNING: Make sure that population_size is bigger than 4*number_categories*number_cores\n";
         }
+
+        std::vector<Configuration> P(categories.size() * population_size);
+
+        //lock[i] = true -> (j,i)-th parent is free for mating
+        std::vector<std::atomic<bool>> isFree(categories.size() * population_size);
 
 #pragma omp parallel
         {
@@ -95,6 +95,9 @@ namespace graph_colouring {
             auto init_seed = static_cast<seed_type>(seed_clock.now().time_since_epoch().count());
             init_seed += static_cast<seed_type>(omp_get_thread_num());
             std::mt19937 generator(init_seed);
+
+            auto mating_population_size = population_size / 2;
+            std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
 
             std::vector<std::uniform_int_distribution<size_t>> initOprDists;
             initOprDists.reserve(categories.size());
@@ -109,28 +112,26 @@ namespace graph_colouring {
                 lsOprDists.emplace_back(0, category->lsOperators.size() - 1);
             }
 
-            auto mating_population_size = population_size / 2;
-            std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
 #pragma omp for collapse(2)
-            for (size_t cat = 0; cat < categories.size(); cat++) {
+            for (size_t j = 0; j < categories.size(); j++) {
                 for (size_t i = 0; i < population_size; i++) {
-                    P[cat * population_size + i] = categories[cat]->initOperators[initOprDists[cat](generator)](G, k);
-                    isFree[cat * population_size + i] = true;
+                    P[j * population_size + i] = categories[j]->initOperators[initOprDists[j](generator)](G, k);
+                    isFree[j * population_size + i] = true;
                 }
             }
 
 #pragma omp for collapse(3) //schedule(guided)
             for (size_t itr = 0; itr < maxItr; itr++) {
-                for (size_t cat = 0; cat < categories.size(); cat++) {
+                for (size_t j = 0; j < categories.size(); j++) {
                     for (size_t i = 0; i < mating_population_size; i++) {
-                        auto p1 = chooseParent(isFree, cat, population_size, generator, distribution);
-                        auto p2 = chooseParent(isFree, cat, population_size, generator, distribution);
+                        auto p1 = chooseParent(isFree, j, population_size, generator, distribution);
+                        auto p2 = chooseParent(isFree, j, population_size, generator, distribution);
 
                         std::array<Configuration *, 2> parents = {&P[p1], &P[p2]};
-                        auto weakerParent = static_cast<size_t>(categories[cat]->compare(G, *parents[0], *parents[1]));
+                        auto weakerParent = static_cast<size_t>(categories[j]->compare(G, *parents[0], *parents[1]));
 
-                        auto crossoverOp = categories[cat]->crossoverOperators[crossoverOprDists[cat](generator)];
-                        auto lsOp = categories[cat]->lsOperators[lsOprDists[cat](generator)];
+                        auto crossoverOp = categories[j]->crossoverOperators[crossoverOprDists[j](generator)];
+                        auto lsOp = categories[j]->lsOperators[lsOprDists[j](generator)];
 
                         *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
 
@@ -140,10 +141,18 @@ namespace graph_colouring {
                 }
             }
         }
-        return *std::max_element(P.begin(),
-                                 P.end(),
-                                 [&G, &categories](const Configuration &a, const Configuration &b) {
-                                     return categories[0]->compare(G, a, b);
-                                 });
+
+        std::vector<Configuration> bestResults(categories.size());
+        for (size_t j = 0; j < categories.size(); j++) {
+            auto best = j;
+            for (int i = 0; i < population_size; i++) {
+                auto nextTry = j * population_size + i;
+                if (categories[j]->compare(G, P[best], P[nextTry])) {
+                    best = nextTry;
+                }
+            }
+            bestResults[j] = P[best];
+        }
+        return bestResults;
     }
 }

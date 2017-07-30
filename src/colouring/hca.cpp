@@ -44,6 +44,6 @@ namespace graph_colouring {
                                   G,
                                   k,
                                   population_size,
-                                  maxItr);
+                                  maxItr)[0];
     }
 }

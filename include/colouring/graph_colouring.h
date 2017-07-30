@@ -103,11 +103,11 @@ namespace graph_colouring {
         const std::vector<LSOperator> &lsOperators;
     };
 
-    Configuration colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
-                                     const graph_access &G,
-                                     size_t k,
-                                     size_t population_size,
-                                     size_t maxItr);
+    std::vector<Configuration> colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
+                                                  const graph_access &G,
+                                                  size_t k,
+                                                  size_t population_size,
+                                                  size_t maxItr);
 
     class InvalidColouringCategory : public ColouringCategory {
     public:
