@@ -51,5 +51,4 @@ BENCHMARK_CAPTURE(BM_sequential, miles250,
 BENCHMARK_CAPTURE(BM_parallel, miles250,
                   "../../input/miles250-sorted.graph")->Unit(benchmark::kMillisecond);
 
-
 BENCHMARK_MAIN()
