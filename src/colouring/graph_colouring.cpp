@@ -83,8 +83,8 @@ namespace graph_colouring {
             std::cerr << "WARNING: Make sure that population_size is bigger than 4*number_categories*number_cores\n";
         }
 
-        std::vector<Configuration> P(categories.size() * population_size);
-
+        std::vector<Configuration> P(categories.size() * population_size,
+                                     Configuration(G.number_of_nodes()));
         //lock[i] = true -> (j,i)-th parent is free for mating
         std::vector<std::atomic<bool>> isFree(categories.size() * population_size);
 
@@ -112,31 +112,52 @@ namespace graph_colouring {
                 lsOprDists.emplace_back(0, category->lsOperators.size() - 1);
             }
 
-#pragma omp for collapse(2)
+            //indication for a found solution.
+            bool abort = false;
+
+            #pragma omp for collapse(2)
             for (size_t j = 0; j < categories.size(); j++) {
                 for (size_t i = 0; i < population_size; i++) {
-                    P[j * population_size + i] = categories[j]->initOperators[initOprDists[j](generator)](G, k);
-                    isFree[j * population_size + i] = true;
+                    #pragma omp flush (abort)
+                    if (!abort) {
+                        P[j * population_size + i] = categories[j]->initOperators[initOprDists[j](generator)](G, k);
+                        isFree[j * population_size + i] = true;
+                        if (categories[j]->isSolution(G, k, P[j * population_size + i])) {
+                            abort = true;
+                            #pragma omp flush (abort)
+                        }
+                    }
                 }
             }
 
-#pragma omp for collapse(3) //schedule(guided)
-            for (size_t itr = 0; itr < maxItr; itr++) {
-                for (size_t j = 0; j < categories.size(); j++) {
-                    for (size_t i = 0; i < mating_population_size; i++) {
-                        auto p1 = chooseParent(isFree, j, population_size, generator, distribution);
-                        auto p2 = chooseParent(isFree, j, population_size, generator, distribution);
+            if (!abort) {
+                #pragma omp for collapse(3)
+                for (size_t itr = 0; itr < maxItr; itr++) {
+                    for (size_t j = 0; j < categories.size(); j++) {
+                        for (size_t i = 0; i < mating_population_size; i++) {
+                            #pragma omp flush (abort)
+                            if (!abort) {
+                                auto p1 = chooseParent(isFree, j, population_size, generator, distribution);
+                                auto p2 = chooseParent(isFree, j, population_size, generator, distribution);
 
-                        std::array<Configuration *, 2> parents = {&P[p1], &P[p2]};
-                        auto weakerParent = static_cast<size_t>(categories[j]->compare(G, *parents[0], *parents[1]));
+                                std::array<Configuration *, 2> parents = {&P[p1], &P[p2]};
+                                auto weakerParent = static_cast<size_t>(categories[j]->compare(G, *parents[0],
+                                                                                               *parents[1]));
 
-                        auto crossoverOp = categories[j]->crossoverOperators[crossoverOprDists[j](generator)];
-                        auto lsOp = categories[j]->lsOperators[lsOprDists[j](generator)];
+                                auto crossoverOp = categories[j]->crossoverOperators[crossoverOprDists[j](generator)];
+                                auto lsOp = categories[j]->lsOperators[lsOprDists[j](generator)];
 
-                        *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
+                                *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
 
-                        isFree[p1] = true;
-                        isFree[p2] = true;
+                                if (categories[j]->isSolution(G, k, *parents[weakerParent])) {
+                                    abort = true;
+                                    #pragma omp flush (abort)
+                                } else {
+                                    isFree[p1] = true;
+                                    isFree[p2] = true;
+                                }
+                            }
+                        }
                     }
                 }
             }

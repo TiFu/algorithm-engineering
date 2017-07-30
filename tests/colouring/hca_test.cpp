@@ -21,7 +21,7 @@ TEST(HybridColouringAlgorithm, miles250_Graph_random_selection) {
     const size_t L = 5;
     const size_t A = 2;
     const double alpha = 0.6;
-    const size_t k = 8;
+    const size_t k = 7;
     const size_t population_size = 20;
     const size_t maxItr = 100;
 
