@@ -11,7 +11,6 @@ namespace graph_colouring {
         std::vector<bool> usedColor(s.size());
         size_t color_count = 0;
         for (auto n : s) {
-            //max for partial colorings
             if (n != std::numeric_limits<Color>::max() && !usedColor[n]) {
                 usedColor[n] = true;
                 color_count++;
@@ -60,69 +59,84 @@ namespace graph_colouring {
     }
 
     inline size_t chooseParent(std::vector<std::atomic<bool>> &lock,
+                               size_t categoryCount,
+                               size_t populationSize,
                                std::mt19937 &generator,
                                std::uniform_int_distribution<size_t> &distribution) {
         size_t nextTry;
         bool expected;
         do {
             expected = true;
-            nextTry = distribution(generator);
+            nextTry = categoryCount * populationSize + distribution(generator);
         } while (!lock[nextTry].compare_exchange_weak(expected, false));
         return nextTry;
     }
 
     Configuration colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
-                                             const graph_access &G,
-                                             const size_t k,
-                                             const size_t population_size,
-                                             const size_t maxItr) {
+                                     const graph_access &G,
+                                     const size_t k,
+                                     const size_t population_size,
+                                     const size_t maxItr) {
+        assert(!categories.empty());
 
-        std::vector<Configuration> P(population_size);
+        std::vector<Configuration> P(categories.size() * population_size);
 
         //lock[i] = true -> i-th parent is free for mating
-        std::vector<std::atomic<bool>> lock(population_size);
+        std::vector<std::atomic<bool>> lock(categories.size() * population_size);
 
-        if (4 * omp_get_max_threads() > population_size) {
-            std::cerr << "WARNING: Make sure that population_size is bigger than 4*number_cores\n";
+        if (4 * omp_get_max_threads() > categories.size() * population_size) {
+            std::cerr << "WARNING: Make sure that population_size is bigger than 4*number_categories*number_cores\n";
         }
 
 #pragma omp parallel
         {
             typedef std::mt19937::result_type seed_type;
             typename std::chrono::system_clock seed_clock;
-            auto mating_population_size = population_size / 2;
-            auto init_seed = static_cast<seed_type>
-            (seed_clock.now().time_since_epoch().count());
+            auto init_seed = static_cast<seed_type>(seed_clock.now().time_since_epoch().count());
             init_seed += static_cast<seed_type>(omp_get_thread_num());
             std::mt19937 generator(init_seed);
 
-            std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
-            std::uniform_int_distribution<size_t> initOprDist(0, categories[0]->initOperators.size() - 1);
-            std::uniform_int_distribution<size_t> crossoverOprOprDist(0, categories[0]->crossoverOperators.size() - 1);
-            std::uniform_int_distribution<size_t> lsOprOprDist(0, categories[0]->lsOperators.size() - 1);
+            std::vector<std::uniform_int_distribution<size_t>> initOprDists;
+            initOprDists.reserve(categories.size());
+            std::vector<std::uniform_int_distribution<size_t>> crossoverOprDists;
+            crossoverOprDists.reserve(categories.size());
+            std::vector<std::uniform_int_distribution<size_t>> lsOprDists;
+            lsOprDists.reserve(categories.size());
 
-#pragma omp for
-            for (size_t i = 0; i < population_size; i++) {
-                P[i] = categories[0]->initOperators[initOprDist(generator)](G, k);
-                lock[i].store(true);
+            for (auto &category : categories) {
+                initOprDists.emplace_back(0, category->initOperators.size() - 1);
+                crossoverOprDists.emplace_back(0, category->crossoverOperators.size() - 1);
+                lsOprDists.emplace_back(0, category->lsOperators.size() - 1);
             }
 
-#pragma omp for collapse(2) //schedule(guided)
-            for (size_t itr = 0; itr < maxItr; itr++) {
-                for (size_t i = 0; i < mating_population_size; i++) {
-                    auto p1 = chooseParent(lock, generator, distribution);
-                    auto p2 = chooseParent(lock, generator, distribution);
+            auto mating_population_size = population_size / 2;
+            std::uniform_int_distribution<size_t> distribution(0, population_size - 1);
+#pragma omp for collapse(2)
+            for (size_t cat = 0; cat < categories.size(); cat++) {
+                for (size_t i = 0; i < population_size; i++) {
+                    P[cat * population_size + i] = categories[cat]->initOperators[initOprDists[cat](generator)](G, k);
+                    lock[i].store(true);
+                }
+            }
 
-                    std::array<Configuration *, 2> parents = {&P[p1], &P[p2]};
-                    auto weakerParent = static_cast<size_t>(categories[0]->compare(G, *parents[0], *parents[1]));
+#pragma omp for collapse(3) //schedule(guided)
+            for (size_t cat = 0; cat < categories.size(); cat++) {
+                for (size_t itr = 0; itr < maxItr; itr++) {
+                    for (size_t i = 0; i < mating_population_size; i++) {
+                        auto p1 = chooseParent(lock, cat, population_size, generator, distribution);
+                        auto p2 = chooseParent(lock, cat, population_size, generator, distribution);
 
-                    auto crossoverOp = categories[0]->crossoverOperators[crossoverOprOprDist(generator)];
-                    auto lsOp = categories[0]->lsOperators[lsOprOprDist(generator)];
+                        std::array<Configuration *, 2> parents = {&P[p1], &P[p2]};
+                        auto weakerParent = static_cast<size_t>(categories[cat]->compare(G, *parents[0], *parents[1]));
 
-                    *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
+                        auto crossoverOp = categories[cat]->crossoverOperators[crossoverOprDists[cat](generator)];
+                        auto lsOp = categories[cat]->lsOperators[lsOprDists[cat](generator)];
 
-                    lock[p1].store(true);
-                    lock[p2].store(true);
+                        *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
+
+                        lock[cat * population_size + p1].store(true);
+                        lock[cat * population_size + p2].store(true);
+                    }
                 }
             }
         }
