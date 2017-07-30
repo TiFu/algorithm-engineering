@@ -20,8 +20,10 @@ void BM_sequential(benchmark::State &state,
         const size_t k = 8;
         const size_t population_size = 1000;
         const size_t maxItr = 20;
+        auto old_omp_num_threads = omp_get_max_threads();
         omp_set_num_threads(1);
         auto result = hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
+        omp_set_num_threads(old_omp_num_threads);
         assert(graph_colouring::numberOfConflictingEdges(G, result) == 0);
     }
 }
@@ -43,10 +45,10 @@ void BM_parallel(benchmark::State &state,
     }
 }
 
-BENCHMARK_CAPTURE(BM_parallel, miles250,
+BENCHMARK_CAPTURE(BM_sequential, miles250,
                   "../../input/miles250-sorted.graph")->Unit(benchmark::kMillisecond);
 
-BENCHMARK_CAPTURE(BM_sequential, miles250,
+BENCHMARK_CAPTURE(BM_parallel, miles250,
                   "../../input/miles250-sorted.graph")->Unit(benchmark::kMillisecond);
 
 
