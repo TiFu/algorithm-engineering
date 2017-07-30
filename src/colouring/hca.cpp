@@ -6,18 +6,8 @@
 
 namespace graph_colouring {
 
-    static bool cmpIllegalColoring(const graph_access &G,
-                                   const Configuration &a,
-                                   const Configuration &b) {
-        return graph_colouring::numberOfConflictingEdges(G, a) >
-               graph_colouring::numberOfConflictingEdges(G, b);
-    }
-
     typedef std::function<Configuration(
-            const std::vector<InitOperator> &initOperator,
-            const std::vector<CrossoverOperator> &crossoverOperator,
-            const std::vector<LSOperator> &lsOperator,
-            const ConfugirationCompare &cmp,
+            const std::vector<std::shared_ptr<ColouringCategory>> &categories,
             const graph_access &G,
             size_t k,
             size_t population_size,
@@ -31,7 +21,7 @@ namespace graph_colouring {
                                                           const size_t L,
                                                           const size_t A,
                                                           const double alpha) {
-        InitOperator hcaInitOp = [L, A, alpha](const graph_access &graph,
+        std::vector<InitOperator> hcaInitOps = {[L, A, alpha](const graph_access &graph,
                                                const size_t colors) {
             return graph_colouring::tabuSearchOperator(graph,
                                                        graph_colouring::initByGreedySaturation(graph, colors),
@@ -39,23 +29,25 @@ namespace graph_colouring {
                                                        A,
                                                        alpha);
 
-        };
+        }};
 
-        CrossoverOperator hcaCrossoverOp = [](const graph_access &G_,
+        std::vector<CrossoverOperator> hcaCrossoverOps = {[](const graph_access &G_,
                                               const Configuration &s1,
                                               const Configuration &s2) {
             return graph_colouring::gpxCrossover(s1, s2);
-        };
+        }};
 
-        LSOperator hcaLSOp = [L, A, alpha](const graph_access &graph,
-                                           const Configuration &s) {
+        std::vector<LSOperator> hcaLSOps = {[L, A, alpha](const graph_access &graph,
+                                                          const Configuration &s) {
             return graph_colouring::tabuSearchOperator(graph, s, L, A, alpha);
-        };
+        }};
 
-        return colouringAlgorithm({hcaInitOp},
-                                  {hcaCrossoverOp},
-                                  {hcaLSOp},
-                                  cmpIllegalColoring,
+
+        auto invalidColoring = std::make_shared<InvalidColouringCategory>(hcaInitOps,
+                                                                          hcaCrossoverOps,
+                                                                          hcaLSOps);
+
+        return colouringAlgorithm({invalidColoring},
                                   G,
                                   k,
                                   population_size,

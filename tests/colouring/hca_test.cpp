@@ -13,13 +13,6 @@
 
 using namespace graph_colouring;
 
-static bool cmpIllegalColoring(const graph_access &G,
-                               const Configuration &a,
-                               const Configuration &b) {
-    return numberOfConflictingEdges(G, a) >
-           numberOfConflictingEdges(G, b);
-}
-
 TEST(HybridColouringAlgorithm, miles250_Graph_random_selection) {
     graph_access G;
     std::string graph_filename = "../../input/miles250-sorted.graph";
@@ -32,7 +25,7 @@ TEST(HybridColouringAlgorithm, miles250_Graph_random_selection) {
     const size_t population_size = 10;
     const size_t maxItr = 100;
 
-    InitOperator hcaInitOp = [L, A, alpha](const graph_access &graph,
+    std::vector<InitOperator> hcaInitOps = {[L, A, alpha](const graph_access &graph,
                                            const size_t colors) {
         return tabuSearchOperator(graph,
                                   initByGreedySaturation(graph, colors),
@@ -40,39 +33,40 @@ TEST(HybridColouringAlgorithm, miles250_Graph_random_selection) {
                                   A,
                                   alpha);
 
-    };
+    }};
 
     size_t hcaCrossoverOp1Count = 0;
-    CrossoverOperator hcaCrossoverOp1 = [&hcaCrossoverOp1Count](const graph_access &G_,
-                                           const Configuration &s1,
-                                           const Configuration &s2) {
-        hcaCrossoverOp1Count++;
-        return gpxCrossover(s1, s2);
-    };
-
     size_t hcaCrossoverOp2Count = 0;
-    CrossoverOperator hcaCrossoverOp2 = [&hcaCrossoverOp2Count](const graph_access &G_,
-                                                                const Configuration &s1,
-                                                                const Configuration &s2) {
-        hcaCrossoverOp2Count++;
-        return gpxCrossover(s1, s2);
-    };
 
-    LSOperator hcaLSOp = [L, A, alpha](const graph_access &graph,
-                                       const Configuration &s) {
+    std::vector<CrossoverOperator> hcaCrossoverOps = {
+            [&hcaCrossoverOp1Count](const graph_access &G_,
+                                    const Configuration &s1,
+                                    const Configuration &s2) {
+                hcaCrossoverOp1Count++;
+                return gpxCrossover(s1, s2);
+            }, [&hcaCrossoverOp2Count](const graph_access &G_,
+                                       const Configuration &s1,
+                                       const Configuration &s2) {
+                hcaCrossoverOp2Count++;
+                return gpxCrossover(s1, s2);
+            }};
+
+    std::vector<LSOperator> hcaLSOps = {[L, A, alpha](const graph_access &graph,
+                                                      const Configuration &s) {
         return tabuSearchOperator(graph, s, L, A, alpha);
-    };
+    }};
 
-    colouringAlgorithm({hcaInitOp},
-                       {hcaCrossoverOp1, hcaCrossoverOp2},
-                       {hcaLSOp},
-                       cmpIllegalColoring,
+    auto invalidColoring = std::make_shared<InvalidColouringCategory>(hcaInitOps,
+                                                                      hcaCrossoverOps,
+                                                                      hcaLSOps);
+
+    colouringAlgorithm({invalidColoring},
                        G,
                        k,
                        population_size,
                        maxItr);
-    ASSERT_TRUE(hcaCrossoverOp1Count > 0 && hcaCrossoverOp1Count < maxItr*population_size/2);
-    ASSERT_TRUE(hcaCrossoverOp2Count > 0 && hcaCrossoverOp2Count < maxItr*population_size/2);
+    ASSERT_TRUE(hcaCrossoverOp1Count > 0 && hcaCrossoverOp1Count < maxItr * population_size / 2);
+    ASSERT_TRUE(hcaCrossoverOp2Count > 0 && hcaCrossoverOp2Count < maxItr * population_size / 2);
 }
 
 

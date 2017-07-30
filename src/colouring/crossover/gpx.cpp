@@ -1,6 +1,8 @@
 #include "colouring/crossover/gpx.h"
 
 #include <algorithm>
+#include <memory>
+
 
 inline Color biggestColorClass(const std::vector<size_t> &colorDist) {
     Color max = 0;
