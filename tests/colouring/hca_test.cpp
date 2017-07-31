@@ -81,7 +81,7 @@ TEST(HybridColouringAlgorithm, miles250_Graph_k8) {
     const size_t k = 8;
     const size_t population_size = 20;
     const size_t maxItr = 100;
-    auto s_best = graph_colouring::hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
+    auto s_best = graph_colouring::hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha, false);
     EXPECT_EQ(graph_colouring::numberOfConflictingEdges(G, s_best), 0);
 }
 

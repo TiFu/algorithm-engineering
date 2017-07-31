@@ -109,7 +109,6 @@ namespace graph_colouring {
     inline size_t numberOfUncolouredNodes(const Configuration &s) {
         size_t count = 0;
         for (auto n : s) {
-            assert(n == std::numeric_limits<Color>::max() || n < k);
             if (n == std::numeric_limits<Color>::max()) {
                 count++;
             }
