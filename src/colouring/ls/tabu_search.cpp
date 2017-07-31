@@ -1,20 +1,22 @@
 #include "colouring/ls/tabu_search.h"
 
-graph_colouring::Configuration graph_colouring::tabuSearchOperator(const graph_access &G,
-                                                                     const Configuration &s,
-                                                                     const size_t L,
-                                                                     const size_t A,
-                                                                     const double alpha) {
+using namespace graph_colouring;
+
+Configuration graph_colouring::tabuSearchOperator(const graph_access &G,
+                                                  const Configuration &s,
+                                                  const size_t L,
+                                                  const size_t A,
+                                                  const double alpha) {
     Configuration s_mutated(s);
     std::uniform_int_distribution<size_t> distribution(0, A - 1);
     std::mt19937 generator;
     //tabu tenure
     auto tl = static_cast<size_t>(distribution(generator)
-                                  + alpha * graph_colouring::numberOfConflictingNodes(G, s_mutated));
+                                  + alpha * numberOfConflictingNodes(G, s_mutated));
 
 
     //Number of classes
-    const size_t k = graph_colouring::colorCount(s_mutated);
+    const size_t k = colorCount(s_mutated);
     //Number of nodes
     const size_t V = G.number_of_nodes();
 
@@ -23,16 +25,16 @@ graph_colouring::Configuration graph_colouring::tabuSearchOperator(const graph_a
         NodeID best_v = std::numeric_limits<NodeID>::max();
         Color best_i = std::numeric_limits<Color>::max();
         Color best_c_v = std::numeric_limits<Color>::max();
-        size_t best_score = graph_colouring::numberOfConflictingEdges(G, s_mutated);
+        size_t best_score = numberOfConflictingEdges(G, s_mutated);
         for (Color c_v = 0; c_v < k; c_v++) {
             for (NodeID v = 0; v < G.number_of_nodes(); v++) {
-                if (s_mutated[v] == c_v && !graph_colouring::allowedInClass(G, s_mutated, c_v, v)) {
+                if (s_mutated[v] == c_v && !allowedInClass(G, s_mutated, c_v, v)) {
                     for (Color i = 0; i < k; i++) {
                         if (i == c_v || tabu_table[v * k + c_v] > l) {
                             continue;
                         }
                         s_mutated[v] = i;
-                        auto new_score = graph_colouring::numberOfConflictingEdges(G, s_mutated);
+                        auto new_score = numberOfConflictingEdges(G, s_mutated);
                         s_mutated[v] = c_v;
                         if (new_score <= best_score) {
                             best_v = v;

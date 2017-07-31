@@ -7,6 +7,36 @@
 #include <set>
 #include <memory>
 
+template<typename T>
+std::ostream &operator<<(std::ostream &strm, const std::set<T> &set) {
+    strm << "{";
+    bool first = true;
+    for (const T &elem : set) {
+        if (first) {
+            first = false;
+        } else {
+            strm << ",";
+        }
+        strm << elem;
+    }
+    return strm << "}";
+}
+
+template<typename T>
+std::ostream &operator<<(std::ostream &strm, const std::vector<T> &set) {
+    strm << "[";
+    bool first = true;
+    for (const T &elem : set) {
+        if (first) {
+            first = false;
+        } else {
+            strm << ",";
+        }
+        strm << elem;
+    }
+    return strm << "]";
+}
+
 namespace graph_colouring {
 
     typedef std::vector<Color> Configuration;
@@ -103,11 +133,24 @@ namespace graph_colouring {
         const std::vector<LSOperator> &lsOperators;
     };
 
-    std::vector<Configuration> colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
-                                                  const graph_access &G,
-                                                  size_t k,
-                                                  size_t population_size,
-                                                  size_t maxItr);
+    /**
+     * @brief Represents a single result from coloingAlgorithm()
+     */
+    struct ColouringResult {
+        /**< The best configuration */
+        Configuration s;
+        /**< The algorithm category used to retrive the corresponding category*/
+        std::shared_ptr<ColouringCategory> category;
+    };
+
+    std::vector<ColouringResult>
+    colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
+                       const graph_access &G,
+                       size_t k,
+                       size_t populationSize,
+                       size_t maxItr,
+                       bool repeat = true,
+                       std::ostream *logStream = nullptr);
 
     class InvalidColouringCategory : public ColouringCategory {
     public:
