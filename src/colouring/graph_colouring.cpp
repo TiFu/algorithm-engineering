@@ -59,7 +59,7 @@ namespace graph_colouring {
     }
 
     inline size_t chooseParent(std::vector<std::atomic<bool>> &isFree,
-                               size_t category,
+                               size_t strategyId,
                                size_t populationSize,
                                std::mt19937 &generator,
                                std::uniform_int_distribution<size_t> &distribution) {
@@ -67,22 +67,22 @@ namespace graph_colouring {
         bool expected;
         do {
             expected = true;
-            nextTry = category * populationSize + distribution(generator);
+            nextTry = strategyId * populationSize + distribution(generator);
         } while (!isFree[nextTry].compare_exchange_weak(expected, false));
         return nextTry;
     }
 
     std::vector<ColouringResult>
-    performColouringAlgorithmIteration(const std::vector<std::shared_ptr<ColouringStrategy> > &categories,
+    performColouringAlgorithmIteration(const std::vector<std::shared_ptr<ColouringStrategy> > &strategies,
                                        const graph_access &G,
                                        const size_t k,
                                        const size_t populationSize,
                                        const size_t maxItr) {
 
-        std::vector<Configuration> P(categories.size() * populationSize,
+        std::vector<Configuration> P(strategies.size() * populationSize,
                                      Configuration(G.number_of_nodes()));
         //lock[i] = true -> i-th individual is free for mating
-        std::vector<std::atomic<bool>> isFree(categories.size() * populationSize);
+        std::vector<std::atomic<bool>> isFree(strategies.size() * populationSize);
 
         #pragma omp parallel
         {
@@ -96,13 +96,13 @@ namespace graph_colouring {
             std::uniform_int_distribution<size_t> distribution(0, populationSize - 1);
 
             std::vector<std::uniform_int_distribution<size_t>> initOprDists;
-            initOprDists.reserve(categories.size());
+            initOprDists.reserve(strategies.size());
             std::vector<std::uniform_int_distribution<size_t>> crossoverOprDists;
-            crossoverOprDists.reserve(categories.size());
+            crossoverOprDists.reserve(strategies.size());
             std::vector<std::uniform_int_distribution<size_t>> lsOprDists;
-            lsOprDists.reserve(categories.size());
+            lsOprDists.reserve(strategies.size());
 
-            for (auto &category : categories) {
+            for (auto &category : strategies) {
                 initOprDists.emplace_back(0, category->initOperators.size() - 1);
                 crossoverOprDists.emplace_back(0, category->crossoverOperators.size() - 1);
                 lsOprDists.emplace_back(0, category->lsOperators.size() - 1);
@@ -112,13 +112,14 @@ namespace graph_colouring {
             bool abort = false;
 
             #pragma omp for collapse(2)
-            for (size_t j = 0; j < categories.size(); j++) {
+            for (size_t strategy = 0; strategy < strategies.size(); strategy++) {
                 for (size_t i = 0; i < populationSize; i++) {
                     #pragma omp flush (abort)
                     if (!abort) {
-                        P[j * populationSize + i] = categories[j]->initOperators[initOprDists[j](generator)](G, k);
-                        isFree[j * populationSize + i] = true;
-                        if (categories[j]->isSolution(G, k, P[j * populationSize + i])) {
+                        P[strategy * populationSize + i] =
+                                strategies[strategy]->initOperators[initOprDists[strategy](generator)](G, k);
+                        isFree[strategy * populationSize + i] = true;
+                        if (strategies[strategy]->isSolution(G, k, P[strategy * populationSize + i])) {
                             abort = true;
                             #pragma omp flush (abort)
                         }
@@ -129,25 +130,25 @@ namespace graph_colouring {
             if (!abort) {
                 #pragma omp for collapse(3)
                 for (size_t itr = 0; itr < maxItr; itr++) {
-                    for (size_t categoryId = 0; categoryId < categories.size(); categoryId++) {
+                    for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
                         for (size_t matingPair = 0; matingPair < matingPopulationSize; matingPair++) {
                             #pragma omp flush (abort)
                             if (!abort) {
-                                auto p1 = chooseParent(isFree, categoryId, populationSize, generator, distribution);
-                                auto p2 = chooseParent(isFree, categoryId, populationSize, generator, distribution);
+                                auto p1 = chooseParent(isFree, strategyId, populationSize, generator, distribution);
+                                auto p2 = chooseParent(isFree, strategyId, populationSize, generator, distribution);
 
                                 std::array<Configuration *, 2> parents = {&P[p1], &P[p2]};
-                                auto weakerParent = static_cast<size_t>(categories[categoryId]->compare(G, *parents[0],
+                                auto weakerParent = static_cast<size_t>(strategies[strategyId]->compare(G, *parents[0],
                                                                                                         *parents[1]));
 
-                                auto crossoverOp = categories[categoryId]->crossoverOperators[
-                                        crossoverOprDists[categoryId](generator)];
-                                auto lsOp = categories[categoryId]->lsOperators[
-                                        lsOprDists[categoryId](generator)];
+                                auto crossoverOp = strategies[strategyId]->crossoverOperators[
+                                        crossoverOprDists[strategyId](generator)];
+                                auto lsOp = strategies[strategyId]->lsOperators[
+                                        lsOprDists[strategyId](generator)];
 
                                 *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
 
-                                if (categories[categoryId]->isSolution(G, k, *parents[weakerParent])) {
+                                if (strategies[strategyId]->isSolution(G, k, *parents[weakerParent])) {
                                     abort = true;
                                     #pragma omp flush (abort)
                                 } else {
@@ -161,21 +162,21 @@ namespace graph_colouring {
             }
         }
 
-        std::vector<ColouringResult> bestResults(categories.size());
-        for (size_t categoryId = 0; categoryId < categories.size(); categoryId++) {
-            auto best = categoryId;
+        std::vector<ColouringResult> bestResults(strategies.size());
+        for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
+            auto best = strategyId;
             for (int i = 0; i < populationSize; i++) {
-                auto nextTry = categoryId * populationSize + i;
-                if (categories[categoryId]->compare(G, P[best], P[nextTry])) {
+                auto nextTry = strategyId * populationSize + i;
+                if (strategies[strategyId]->compare(G, P[best], P[nextTry])) {
                     best = nextTry;
                 }
             }
-            bestResults[categoryId] = {P[best], categories[categoryId]};
+            bestResults[strategyId] = {P[best], strategies[strategyId]};
         }
         return bestResults;
     }
 
-    std::vector<ColouringResult> colouringAlgorithm(const std::vector<std::shared_ptr<ColouringStrategy> > &categories,
+    std::vector<ColouringResult> colouringAlgorithm(const std::vector<std::shared_ptr<ColouringStrategy> > &strategies,
                                                     const graph_access &G,
                                                     const size_t k,
                                                     const size_t populationSize,
@@ -183,9 +184,9 @@ namespace graph_colouring {
                                                     const bool repeat,
                                                     std::ostream *outStream) {
 
-        assert(!categories.empty());
+        assert(!strategies.empty());
 
-        if (4 * omp_get_max_threads() > categories.size() * populationSize) {
+        if (4 * omp_get_max_threads() > strategies.size() * populationSize) {
             std::cerr << "WARNING: Make sure that populationSize is bigger than 4*numberCategories*numberCPUCores\n";
         }
 
@@ -194,10 +195,10 @@ namespace graph_colouring {
         bool foundSolution;
         do {
             foundSolution = false;
-            results = performColouringAlgorithmIteration(categories, G, current_k, populationSize, maxItr);
+            results = performColouringAlgorithmIteration(strategies, G, current_k, populationSize, maxItr);
 
             for (auto &result : results) {
-                if (result.category->isSolution(G, current_k, result.s)) {
+                if (result.strategy->isSolution(G, current_k, result.s)) {
                     foundSolution = true;
                     break;
                 }
@@ -208,7 +209,7 @@ namespace graph_colouring {
                     out << "###################################\n";
                     out << "Current k: " << current_k << "\n";
                     out << "Best Solutions:\n";
-                    if (result.category->isSolution(G, current_k, result.s)) {
+                    if (result.strategy->isSolution(G, current_k, result.s)) {
                         std::cout << " VALID  : ";
                     } else {
                         std::cout << " INVALID: ";

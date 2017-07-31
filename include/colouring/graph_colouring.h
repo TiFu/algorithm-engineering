@@ -215,15 +215,15 @@ namespace graph_colouring {
         /**< The best configuration */
         Configuration s;
         /**< The algorithm category used to retrive the corresponding category*/
-        std::shared_ptr<ColouringStrategy> category;
+        std::shared_ptr<ColouringStrategy> strategy;
     };
 
     /**
      * The main entry point for executing the genetic algorithm in parallel.
-     * It will maintain a polulation for each colouring category passed to this function.
-     * Each colouring category represent a specific strategy and therefore provides its own sets of
-     * operators and scoring functions.
-     * @param categories the categories of operators and scoring functions used in this run
+     * It will maintain a polulation for each colouring strategy passed to this function.
+     * For each iteration and strategy, the algorithm will choose randomly select one
+     * operator to perform a coresponding action.
+     * @param strategies the categories of operators and scoring functions used in this run
      * @param G the target graph
      * @param k the (maximum) number of colors
      * @param populationSize the number of maintained colourings
@@ -235,7 +235,7 @@ namespace graph_colouring {
      * @return the best colourings for each passed colouring category
      */
     std::vector<ColouringResult>
-    colouringAlgorithm(const std::vector<std::shared_ptr<ColouringStrategy> > &categories,
+    colouringAlgorithm(const std::vector<std::shared_ptr<ColouringStrategy> > &strategies,
                        const graph_access &G,
                        size_t k,
                        size_t populationSize,
