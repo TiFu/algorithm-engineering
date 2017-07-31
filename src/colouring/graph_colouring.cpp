@@ -73,23 +73,18 @@ namespace graph_colouring {
     }
 
     std::vector<ColouringResult>
-    performColouringAlgorithmIteration(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
+    performColouringAlgorithmIteration(const std::vector<std::shared_ptr<ColouringStrategy> > &categories,
                                        const graph_access &G,
                                        const size_t k,
                                        const size_t populationSize,
                                        const size_t maxItr) {
-        assert(!categories.empty());
-
-        if (4 * omp_get_max_threads() > categories.size() * populationSize) {
-            std::cerr << "WARNING: Make sure that populationSize is bigger than 4*numberCategories*numberCPUCores\n";
-        }
 
         std::vector<Configuration> P(categories.size() * populationSize,
                                      Configuration(G.number_of_nodes()));
         //lock[i] = true -> i-th individual is free for mating
         std::vector<std::atomic<bool>> isFree(categories.size() * populationSize);
 
-#pragma omp parallel
+        #pragma omp parallel
         {
             typedef std::mt19937::result_type seed_type;
             typename std::chrono::system_clock seed_clock;
@@ -116,27 +111,27 @@ namespace graph_colouring {
             //flag for a found solution.
             bool abort = false;
 
-#pragma omp for collapse(2)
+            #pragma omp for collapse(2)
             for (size_t j = 0; j < categories.size(); j++) {
                 for (size_t i = 0; i < populationSize; i++) {
-#pragma omp flush (abort)
+                    #pragma omp flush (abort)
                     if (!abort) {
                         P[j * populationSize + i] = categories[j]->initOperators[initOprDists[j](generator)](G, k);
                         isFree[j * populationSize + i] = true;
                         if (categories[j]->isSolution(G, k, P[j * populationSize + i])) {
                             abort = true;
-#pragma omp flush (abort)
+                            #pragma omp flush (abort)
                         }
                     }
                 }
             }
 
             if (!abort) {
-#pragma omp for collapse(3)
+                #pragma omp for collapse(3)
                 for (size_t itr = 0; itr < maxItr; itr++) {
                     for (size_t categoryId = 0; categoryId < categories.size(); categoryId++) {
                         for (size_t matingPair = 0; matingPair < matingPopulationSize; matingPair++) {
-#pragma omp flush (abort)
+                            #pragma omp flush (abort)
                             if (!abort) {
                                 auto p1 = chooseParent(isFree, categoryId, populationSize, generator, distribution);
                                 auto p2 = chooseParent(isFree, categoryId, populationSize, generator, distribution);
@@ -154,7 +149,7 @@ namespace graph_colouring {
 
                                 if (categories[categoryId]->isSolution(G, k, *parents[weakerParent])) {
                                     abort = true;
-#pragma omp flush (abort)
+                                    #pragma omp flush (abort)
                                 } else {
                                     isFree[p1] = true;
                                     isFree[p2] = true;
@@ -180,13 +175,20 @@ namespace graph_colouring {
         return bestResults;
     }
 
-    std::vector<ColouringResult> colouringAlgorithm(const std::vector<std::shared_ptr<ColouringCategory> > &categories,
+    std::vector<ColouringResult> colouringAlgorithm(const std::vector<std::shared_ptr<ColouringStrategy> > &categories,
                                                     const graph_access &G,
                                                     const size_t k,
                                                     const size_t populationSize,
                                                     const size_t maxItr,
                                                     const bool repeat,
-                                                    std::ostream *outs) {
+                                                    std::ostream *outStream) {
+
+        assert(!categories.empty());
+
+        if (4 * omp_get_max_threads() > categories.size() * populationSize) {
+            std::cerr << "WARNING: Make sure that populationSize is bigger than 4*numberCategories*numberCPUCores\n";
+        }
+
         auto current_k = k;
         std::vector<ColouringResult> results;
         bool foundSolution;
@@ -200,8 +202,8 @@ namespace graph_colouring {
                     break;
                 }
             }
-            if (outs != nullptr) {
-                std::ostream &out = *outs;
+            if (outStream != nullptr) {
+                std::ostream &out = *outStream;
                 for (auto &result : results) {
                     out << "###################################\n";
                     out << "Current k: " << current_k << "\n";

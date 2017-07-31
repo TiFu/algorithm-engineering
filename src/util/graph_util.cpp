@@ -41,7 +41,7 @@ std::string graph_util::toGraphvizStrig(const graph_access &G,
         for (int i = 0; i < colors.size(); i++) {
             ss << "    subgraph cluster_" << i << " {\n";
             for (size_t n = 0; n < configuration.size(); n++) {
-                if(configuration[n] == i) {
+                if (configuration[n] == i) {
                     ss << "        " << n << " [penwidth=3 color=" << colors[configuration[n]] << "];\n";
                 }
             }
@@ -49,7 +49,7 @@ std::string graph_util::toGraphvizStrig(const graph_access &G,
         }
     } else {
         for (size_t n = 0; n < configuration.size(); n++) {
-                ss << "    " << n << " [penwidth=3 color=" << colors[configuration[n]] << "];\n";
+            ss << "    " << n << " [penwidth=3 color=" << colors[configuration[n]] << "];\n";
         }
     }
 

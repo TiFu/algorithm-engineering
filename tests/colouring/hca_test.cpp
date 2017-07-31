@@ -56,7 +56,7 @@ TEST(HybridColouringAlgorithm, miles250_Graph_random_selection) {
         return tabuSearchOperator(graph, s, L, A, alpha);
     }};
 
-    auto invalidColoring = std::make_shared<InvalidColouringCategory>(hcaInitOps,
+    auto invalidColoring = std::make_shared<InvalidColouringStrategy>(hcaInitOps,
                                                                       hcaCrossoverOps,
                                                                       hcaLSOps);
 
