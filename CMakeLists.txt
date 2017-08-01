@@ -9,6 +9,10 @@ include(ConfigSafeGuards)
 # Downloads & Compiles external dependencies automatically
 include(${CMAKE_MODULE_PATH}/DownloadProject/DownloadProject.cmake)
 
+#Boost
+set(BOOST_REQUESTED_VERSION 1.61)
+find_package(Boost COMPONENTS lockfeee)
+
 # OpenMP support
 option(USE_OpenMP "Use OpenMP" ON)
 if (USE_OpenMP)
