@@ -10,6 +10,6 @@ namespace graph_colouring {
      * @param k the number of used colors
      * @return a (possibly invalid) colouring with \p k colors
      */
-    Configuration initByGreedySaturation(const graph_access &G,
+    Colouring initByGreedySaturation(const graph_access &G,
                                          size_t k);
 }

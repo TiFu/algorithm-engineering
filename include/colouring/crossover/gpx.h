@@ -10,6 +10,6 @@ namespace graph_colouring {
      * @param s2 the second parent
      * @return a new colouring based on the two parents
      */
-    Configuration gpxCrossover(const Configuration &s1,
-                                 const Configuration &s2);
+    Colouring gpxCrossover(const Colouring &s1,
+                                 const Colouring &s2);
 }

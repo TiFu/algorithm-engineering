@@ -2,12 +2,12 @@
 
 using namespace graph_colouring;
 
-Configuration graph_colouring::tabuSearchOperator(const graph_access &G,
-                                                  const Configuration &s,
+Colouring graph_colouring::tabuSearchOperator(const graph_access &G,
+                                                  const Colouring &s,
                                                   const size_t L,
                                                   const size_t A,
                                                   const double alpha) {
-    Configuration s_mutated(s);
+    Colouring s_mutated(s);
     std::uniform_int_distribution<size_t> distribution(0, A - 1);
     std::mt19937 generator;
     //tabu tenure

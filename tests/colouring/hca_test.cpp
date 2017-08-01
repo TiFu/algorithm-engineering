@@ -40,19 +40,19 @@ TEST(HybridColouringAlgorithm, miles250_Graph_random_selection) {
 
     std::vector<CrossoverOperator> hcaCrossoverOps = {
             [&hcaCrossoverOp1Count](const graph_access &G_,
-                                    const Configuration &s1,
-                                    const Configuration &s2) {
+                                    const Colouring &s1,
+                                    const Colouring &s2) {
                 hcaCrossoverOp1Count++;
                 return gpxCrossover(s1, s2);
             }, [&hcaCrossoverOp2Count](const graph_access &G_,
-                                       const Configuration &s1,
-                                       const Configuration &s2) {
+                                       const Colouring &s1,
+                                       const Colouring &s2) {
                 hcaCrossoverOp2Count++;
                 return gpxCrossover(s1, s2);
             }};
 
     std::vector<LSOperator> hcaLSOps = {[L, A, alpha](const graph_access &graph,
-                                                      const Configuration &s) {
+                                                      const Colouring &s) {
         return tabuSearchOperator(graph, s, L, A, alpha);
     }};
 

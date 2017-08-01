@@ -20,7 +20,7 @@ namespace graph_util {
      * @return a textual representation of the given graph \p G with its colouring \p configuration in GraphViz format
      */
     std::string toGraphvizStrig(const graph_access &G,
-                                const graph_colouring::Configuration &configuration,
+                                const graph_colouring::Colouring &configuration,
                                 bool partitioned = false,
                                 const std::string &label = "G");
 }

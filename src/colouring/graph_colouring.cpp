@@ -7,7 +7,7 @@
 
 namespace graph_colouring {
 
-    size_t colorCount(const Configuration &s) {
+    size_t colorCount(const Colouring &s) {
         std::vector<bool> usedColor(s.size());
         size_t color_count = 0;
         for (auto n : s) {
@@ -20,7 +20,7 @@ namespace graph_colouring {
     }
 
     bool allowedInClass(const graph_access &G,
-                        const Configuration &c,
+                        const Colouring &c,
                         const Color color,
                         const NodeID nodeID) {
         for (auto neighbour : G.neighbours(nodeID)) {
@@ -32,7 +32,7 @@ namespace graph_colouring {
     }
 
     size_t numberOfConflictingNodes(const graph_access &G,
-                                    const Configuration &s) {
+                                    const Colouring &s) {
         size_t count = 0;
         for (NodeID n = 0; n < s.size(); n++) {
             for (auto neighbour : G.neighbours(n)) {
@@ -46,7 +46,7 @@ namespace graph_colouring {
     }
 
     size_t numberOfConflictingEdges(const graph_access &G,
-                                    const Configuration &s) {
+                                    const Colouring &s) {
         size_t count = 0;
         for (NodeID n = 0; n < s.size(); n++) {
             for (auto neighbour : G.neighbours(n)) {
@@ -79,8 +79,8 @@ namespace graph_colouring {
                                        const size_t populationSize,
                                        const size_t maxItr) {
 
-        std::vector<Configuration> P(strategies.size() * populationSize,
-                                     Configuration(G.number_of_nodes()));
+        std::vector<Colouring> P(strategies.size() * populationSize,
+                                     Colouring(G.number_of_nodes()));
         //lock[i] = true -> i-th individual is free for mating
         std::vector<std::atomic<bool>> isFree(strategies.size() * populationSize);
 
@@ -137,7 +137,7 @@ namespace graph_colouring {
                                 auto p1 = chooseParent(isFree, strategyId, populationSize, generator, distribution);
                                 auto p2 = chooseParent(isFree, strategyId, populationSize, generator, distribution);
 
-                                std::array<Configuration *, 2> parents = {&P[p1], &P[p2]};
+                                std::array<Colouring *, 2> parents = {&P[p1], &P[p2]};
                                 auto weakerParent = static_cast<size_t>(strategies[strategyId]->compare(G, *parents[0],
                                                                                                         *parents[1]));
 

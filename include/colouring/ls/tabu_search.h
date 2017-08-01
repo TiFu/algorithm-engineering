@@ -13,8 +13,8 @@ namespace graph_colouring {
      * @param alpha tuning parameter for table list length
      * @return an enhanced colouring based of configuration \p s
      */
-    Configuration tabuSearchOperator(const graph_access &G,
-                                     const Configuration &s,
+    Colouring tabuSearchOperator(const graph_access &G,
+                                     const Colouring &s,
                                      size_t L,
                                      size_t A,
                                      double alpha);

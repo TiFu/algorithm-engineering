@@ -44,33 +44,33 @@ namespace graph_colouring {
      * config[n] = c means that color c is associated to node with node id n
      * Use config[n] = std::numeric_limits<Color>::max() to mark node n as uncoloured
      */
-    typedef std::vector<Color> Configuration;
+    typedef std::vector<Color> Colouring;
 
     /**
      * Operator used to create an initial configuration with k colors.
      * The parameter k represents the (desired) number of colors for the configuration.
      */
-    typedef std::function<Configuration(const graph_access &G,
+    typedef std::function<Colouring(const graph_access &G,
                                         const size_t k)> InitOperator;
 
     /**
      * Creates a new colouring based on two existing parent configurations s1 and s2.
      */
-    typedef std::function<Configuration(const graph_access &G,
-                                        const Configuration &s1,
-                                        const Configuration &s2)> CrossoverOperator;
+    typedef std::function<Colouring(const graph_access &G,
+                                        const Colouring &s1,
+                                        const Colouring &s2)> CrossoverOperator;
 
     /**
      * Optimizes / mutates the existign colouring s.
      */
-    typedef std::function<Configuration(const graph_access &G,
-                                        const Configuration &s)> LSOperator;
+    typedef std::function<Colouring(const graph_access &G,
+                                        const Colouring &s)> LSOperator;
 
     /**
      * @param s a graph colouring
      * @return the number of colurs used in the configuration \s
      */
-    size_t colorCount(const Configuration &s);
+    size_t colorCount(const Colouring &s);
 
     /**
      * @param G the target graph
@@ -81,7 +81,7 @@ namespace graph_colouring {
      * edges to nodes with the same color class
      */
     bool allowedInClass(const graph_access &G,
-                        const Configuration &s,
+                        const Colouring &s,
                         Color color,
                         NodeID nodeID);
 
@@ -91,7 +91,7 @@ namespace graph_colouring {
      * @return the number of nodes whose neighbours reside in the same color class
      */
     size_t numberOfConflictingNodes(const graph_access &G,
-                                    const Configuration &s);
+                                    const Colouring &s);
 
     /**
      *
@@ -100,13 +100,13 @@ namespace graph_colouring {
      * @return the number of edges between two nodes that have the same colouring
      */
     size_t numberOfConflictingEdges(const graph_access &G,
-                                    const Configuration &s);
+                                    const Colouring &s);
 
     /**
      * @param s a colouring
      * @return the number of nodes thate have no associated color
      */
-    inline size_t numberOfUncolouredNodes(const Configuration &s) {
+    inline size_t numberOfUncolouredNodes(const Colouring &s) {
         size_t count = 0;
         for (auto n : s) {
             if (n == std::numeric_limits<Color>::max()) {
@@ -120,7 +120,7 @@ namespace graph_colouring {
      * @param s a colouring
      * @return true if all nodes in the given configuration do have colors
      */
-    inline bool isFullyColoured(const Configuration &s) {
+    inline bool isFullyColoured(const Colouring &s) {
         return numberOfUncolouredNodes(s) == 0;
     }
 
@@ -164,7 +164,7 @@ namespace graph_colouring {
          */
         virtual bool isSolution(const graph_access &G,
                                 const size_t k,
-                                const Configuration &s) {
+                                const Colouring &s) {
             return colorCount(s) <= k &&
                    numberOfConflictingEdges(G, s) == 0 &&
                    isFullyColoured(s);
@@ -178,8 +178,8 @@ namespace graph_colouring {
          * @return True if coloring \p has a lesser score compared to coloring \p b
          */
         virtual bool compare(const graph_access &G,
-                             const Configuration &a,
-                             const Configuration &b) = 0;
+                             const Colouring &a,
+                             const Colouring &b) = 0;
 
         /**< Used initialization operators */
         const std::vector<InitOperator> &initOperators;
@@ -201,8 +201,8 @@ namespace graph_colouring {
         }
 
         bool compare(const graph_access &G,
-                     const Configuration &a,
-                     const Configuration &b) override {
+                     const Colouring &a,
+                     const Colouring &b) override {
             return numberOfConflictingEdges(G, a) >
                    numberOfConflictingEdges(G, b);
         }
@@ -213,7 +213,7 @@ namespace graph_colouring {
      */
     struct ColouringResult {
         /**< The best configuration */
-        Configuration s;
+        Colouring s;
         /**< The algorithm category used to retrieve the corresponding category*/
         std::shared_ptr<ColouringStrategy> strategy;
     };

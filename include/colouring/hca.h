@@ -20,7 +20,7 @@ namespace graph_colouring {
      * iteration into the output stream
      * @return the best found colouring
      */
-    Configuration hybridColouringAlgorithm(const graph_access &G,
+    Colouring hybridColouringAlgorithm(const graph_access &G,
                                            size_t k,
                                            size_t populationSize,
                                            size_t maxItr,

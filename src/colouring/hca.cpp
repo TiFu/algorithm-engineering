@@ -6,7 +6,7 @@
 
 namespace graph_colouring {
 
-    Configuration hybridColouringAlgorithm(
+    Colouring hybridColouringAlgorithm(
             const graph_access &G,
             const size_t k,
             const size_t population_size,
@@ -26,12 +26,12 @@ namespace graph_colouring {
 
         }};
         std::vector<CrossoverOperator> hcaCrossoverOps = {[](const graph_access &G_,
-                                                             const Configuration &s1,
-                                                             const Configuration &s2) {
+                                                             const Colouring &s1,
+                                                             const Colouring &s2) {
             return graph_colouring::gpxCrossover(s1, s2);
         }};
         std::vector<LSOperator> hcaLSOps = {[L, A, alpha](const graph_access &graph,
-                                                          const Configuration &s) {
+                                                          const Colouring &s) {
             return graph_colouring::tabuSearchOperator(graph, s, L, A, alpha);
         }};
 
