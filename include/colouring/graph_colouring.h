@@ -209,12 +209,12 @@ namespace graph_colouring {
     };
 
     /**
-     * @brief Represents a single result from coloingAlgorithm()
+     * @brief Represents a single result from coloringAlgorithm()
      */
     struct ColouringResult {
         /**< The best configuration */
         Configuration s;
-        /**< The algorithm category used to retrive the corresponding category*/
+        /**< The algorithm category used to retrieve the corresponding category*/
         std::shared_ptr<ColouringStrategy> strategy;
     };
 
