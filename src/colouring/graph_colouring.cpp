@@ -84,6 +84,9 @@ namespace graph_colouring {
         //lock[i] = true -> i-th individual is free for mating
         std::vector<std::atomic<bool>> isFree(strategies.size() * populationSize);
 
+        //flag for a found solution.
+        bool abort = false;
+
         #pragma omp parallel
         {
             typedef std::mt19937::result_type seed_type;
@@ -107,9 +110,6 @@ namespace graph_colouring {
                 crossoverOprDists.emplace_back(0, category->crossoverOperators.size() - 1);
                 lsOprDists.emplace_back(0, category->lsOperators.size() - 1);
             }
-
-            //flag for a found solution.
-            bool abort = false;
 
             #pragma omp for collapse(2)
             for (size_t strategy = 0; strategy < strategies.size(); strategy++) {
