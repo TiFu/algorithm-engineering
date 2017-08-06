@@ -1,5 +1,3 @@
-#include <debug.h>
-#include <omp.h>
 #include "benchmark/benchmark.h"
 
 #include "data_structure/io/graph_io.h"
@@ -14,18 +12,16 @@ void BM_sequential(benchmark::State &state,
         graph_access G;
         graph_io::readGraphWeighted(G, graphFile);
 
+        const size_t min_k = 7;
+        const size_t k = 9;
+        const size_t population_size = 100;
+        const size_t maxItr = 20;
         const size_t L = 5;
         const size_t A = 2;
         const double alpha = 0.6;
-        const size_t k = 9;
-        const size_t population_size = 1000;
-        const size_t maxItr = 20;
-        auto old_omp_num_threads = omp_get_max_threads();
-        omp_set_num_threads(1);
-        auto result = hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
-        omp_set_num_threads(old_omp_num_threads);
-        if(graph_colouring::colorCount(result) > 7) {
-            std::cerr << "Should return a colouring with k=" << 7 << "\n";
+        auto result = hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha, 1);
+        if(graph_colouring::colorCount(result) > min_k || graph_colouring::numberOfConflictingEdges(G, result) > 2) {
+            std::cerr << "Should return a colouring with k=" << min_k << "\n";
         }
     }
 }
@@ -36,15 +32,16 @@ void BM_parallel(benchmark::State &state,
         graph_access G;
         graph_io::readGraphWeighted(G, graphFile);
 
+        const size_t min_k = 7;
+        const size_t k = 9;
+        const size_t population_size = 100;
+        const size_t maxItr = 20;
         const size_t L = 5;
         const size_t A = 2;
         const double alpha = 0.6;
-        const size_t k = 9;
-        const size_t population_size = 1000;
-        const size_t maxItr = 20;
         auto result = hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha);
-        if(graph_colouring::colorCount(result) > 7) {
-            std::cerr << "Should return a colouring with k=" << 7 << "\n";
+        if(graph_colouring::colorCount(result) > min_k || graph_colouring::numberOfConflictingEdges(G, result) > 2) {
+            std::cerr << "Should return a colouring with k=" << min_k << "\n";
         }
     }
 }
@@ -54,5 +51,6 @@ BENCHMARK_CAPTURE(BM_sequential, miles250,
 
 BENCHMARK_CAPTURE(BM_parallel, miles250,
                   "../../input/miles250-sorted.graph")->Unit(benchmark::kMillisecond);
+
 
 BENCHMARK_MAIN()

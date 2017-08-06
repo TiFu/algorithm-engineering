@@ -27,7 +27,6 @@ namespace graph_colouring {
                                            size_t L,
                                            size_t A,
                                            double alpha,
-                                           bool repeat = true,
-                                           std::ostream *logStream = nullptr);
+                                           size_t threadCount = std::thread::hardware_concurrency());
 
 }

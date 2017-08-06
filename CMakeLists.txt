@@ -13,18 +13,8 @@ include(${CMAKE_MODULE_PATH}/DownloadProject/DownloadProject.cmake)
 set(BOOST_REQUESTED_VERSION 1.61)
 find_package(Boost COMPONENTS lockfeee)
 
-# OpenMP support
-option(USE_OpenMP "Use OpenMP" ON)
-if (USE_OpenMP)
-    find_package(OpenMP)
-    if (OPENMP_FOUND)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    endif ()
-endif ()
-
 #Common flags and variables
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -g")
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${ROOT}/include)
 

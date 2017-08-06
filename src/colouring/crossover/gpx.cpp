@@ -13,7 +13,7 @@ inline Color biggestColorClass(const std::vector<size_t> &colorDist) {
 }
 
 graph_colouring::Colouring graph_colouring::gpxCrossover(const graph_colouring::Colouring &s1_org,
-                                                               const graph_colouring::Colouring &s2_org) {
+                                                         const graph_colouring::Colouring &s2_org) {
     assert(graph_colouring::colorCount(s1_org) == graph_colouring::colorCount(s2_org));
 
     Colouring s1(s1_org);

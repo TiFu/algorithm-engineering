@@ -2,10 +2,51 @@
 
 #include <atomic>
 #include <algorithm>
-#include <thread>
-#include <omp.h>
+#include <debug.h>
+
+#include <boost/lockfree/queue.hpp>
 
 namespace graph_colouring {
+
+    /**
+     * Used to encapsulate a independently processable working package
+     * within the thread pool of the genetic algorithm.
+     */
+    struct WorkingPackage {
+        /**< The current iteration cont.
+         * If itr=0, the working thread will initialize colourig1 using a initialization operator
+         * If itr>0, the working thread will perform regular crossover and ls operator
+         */
+        size_t itr;
+        /**< The used colouring strategy */
+        size_t strategyId;
+        /**< The number of colors used for the colouring strategy */
+        size_t target_k;
+        /**< The index of the first colouring */
+        size_t colouring;
+    };
+
+    /**
+     * Used to notify the master thread about certain events
+     */
+    struct MasterPackage {
+        /**< The next k to be searched */
+        size_t next_k;
+    };
+
+    /**
+     * Used in the parallel colouring algorithm to track certain events
+     */
+    struct ColouringStrategyContext {
+        /**> contains the fixed number of k that are used for a fixed colouring strategy
+         * This value will be ignored if ColouringStrategy::isFixedKStrategy() returns true
+         */
+        std::atomic<size_t> fixed_k;
+        /**> stores the number of active threads that are processing working packages
+         * of the associalte colouring strategy
+         */
+        std::atomic<size_t> activeThreadsCount;
+    };
 
     size_t colorCount(const Colouring &s) {
         std::vector<bool> usedColor(s.size());
@@ -58,108 +99,209 @@ namespace graph_colouring {
         return count / 2;
     }
 
-    inline size_t chooseParent(std::vector<std::atomic<bool>> &isFree,
-                               size_t strategyId,
-                               size_t populationSize,
-                               std::mt19937 &generator,
-                               std::uniform_int_distribution<size_t> &distribution) {
+    inline size_t chooseParent(const size_t strategyId,
+                               const size_t populationSize,
+                               std::vector<std::atomic<bool>> &lock,
+                               std::mt19937 &generator) {
+        std::uniform_int_distribution<size_t> populationDist(0, populationSize - 1);
         size_t nextTry;
         bool expected;
         do {
-            expected = true;
-            nextTry = strategyId * populationSize + distribution(generator);
-        } while (!isFree[nextTry].compare_exchange_weak(expected, false));
+            expected = false;
+            nextTry = strategyId * populationSize + populationDist(generator);
+        } while (!lock[nextTry].compare_exchange_weak(expected, true));
         return nextTry;
     }
 
+    static void workerThread(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
+                             const graph_access &G,
+                             const size_t populationSize,
+                             const size_t maxItr,
+                             const size_t threadId,
+                             std::vector<ColouringStrategyContext> &context,
+                             boost::lockfree::queue<WorkingPackage> &workQueue,
+                             boost::lockfree::queue<MasterPackage> &masterQueue,
+                             std::vector<Colouring> &population,
+                             std::vector<std::atomic<bool>> &lock,
+                             std::atomic<size_t> &target_k,
+                             std::atomic<bool> &terminated) {
+        typedef std::mt19937::result_type seed_type;
+        typename std::chrono::system_clock seed_clock;
+        auto init_seed = static_cast<seed_type>(seed_clock.now().time_since_epoch().count());
+        init_seed += static_cast<seed_type>(threadId);
+
+        std::mt19937 generator(init_seed);
+
+        //Only used to avoid rapid reporting of already known colourings
+        size_t last_reported_k = target_k + 1;
+
+        while (!terminated) {
+            WorkingPackage wp = {0, 0, 0, 0};
+            if (workQueue.pop(wp)) {
+                const ColouringStrategy &strategy = *strategies[wp.strategyId];
+
+                //std::cerr << "(" << wp.itr << "," << wp.strategyId << "," << wp.target_k << "," << wp.colouring
+                //          << ")\n";
+
+                if (target_k < wp.target_k && strategy.isFixedKStrategy()) {
+                    continue;
+                }
+
+                context[wp.strategyId].activeThreadsCount.fetch_add(1);
+
+                //std::cerr << context[wp.strategyId].activeThreadsCount << " " << wp.target_k << " " << target_k << "\n";
+
+                if (wp.itr > 0) {
+                    auto p1 = chooseParent(wp.strategyId, populationSize, lock, generator);
+                    auto p2 = chooseParent(wp.strategyId, populationSize, lock, generator);
+
+                    std::array<Colouring *, 2> parents = {&population[p1], &population[p2]};
+                    auto weakerParent = static_cast<size_t>(strategy.compare(G,
+                                                                             *parents[0],
+                                                                             *parents[1]));
+
+                    std::uniform_int_distribution<size_t> crossoverOprDist(0, strategy.crossoverOperators.size() - 1);
+                    std::uniform_int_distribution<size_t> lsOprDist(0, strategy.lsOperators.size() - 1);
+
+                    auto crossoverOp = strategy.crossoverOperators[
+                            crossoverOprDist(generator)];
+                    auto lsOp = strategies[wp.strategyId]->lsOperators[
+                            lsOprDist(generator)];
+
+                    auto &target = *parents[weakerParent];
+
+                    target = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
+
+                    if (strategy.isSolution(G, target_k, target) && last_reported_k >= target_k) {
+                        last_reported_k = colorCount(target);
+                        masterQueue.push({last_reported_k});
+                    }
+
+                    lock[p1] = false;
+                    lock[p2] = false;
+
+                    if (wp.itr < maxItr) {
+                        workQueue.push({wp.itr + 1, wp.strategyId, wp.target_k, wp.colouring});
+                    }
+                } else {
+                    std::uniform_int_distribution<size_t> initOprDist(0, strategy.initOperators.size() - 1);
+                    std::uniform_int_distribution<size_t> lsOprDist(0, strategy.lsOperators.size() - 1);
+
+                    auto initOpr = strategy.initOperators[initOprDist(generator)];
+                    auto lsOpr = strategy.lsOperators[lsOprDist(generator)];
+
+                    auto &target = population[wp.strategyId * populationSize + wp.colouring];
+
+                    target = lsOpr(G, initOpr(G, wp.target_k));
+
+                    if (strategy.isSolution(G, target_k, target) && last_reported_k > target_k) {
+                        last_reported_k = colorCount(target);
+                        masterQueue.push({last_reported_k});
+                    }
+
+                    lock[wp.strategyId * populationSize + wp.colouring] = false;
+
+                    auto matingPopulationSize = populationSize / 2;
+                    if (wp.colouring < matingPopulationSize) {
+                        workQueue.push({wp.itr + 1, wp.strategyId, wp.target_k, wp.colouring});
+                    }
+                }
+                context[wp.strategyId].activeThreadsCount.fetch_sub(1);
+            }
+            std::this_thread::yield();
+        }
+    }
+
     std::vector<ColouringResult>
-    performColouringAlgorithmIteration(const std::vector<std::shared_ptr<ColouringStrategy> > &strategies,
-                                       const graph_access &G,
-                                       const size_t k,
-                                       const size_t populationSize,
-                                       const size_t maxItr) {
+    ColouringAlgorithm::perform(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
+                                const graph_access &G,
+                                const size_t k,
+                                const size_t populationSize,
+                                const size_t maxItr,
+                                const size_t threadCount) {
 
-        std::vector<Colouring> P(strategies.size() * populationSize,
-                                     Colouring(G.number_of_nodes()));
+        assert(!strategies.empty());
+        assert(populationSize > 0);
+        assert(maxItr > 0);
+        assert(threadCount > 0);
+
+        if (4 * threadCount > strategies.size() * populationSize) {
+            std::cerr << "WARNING: Make sure that populationSize is bigger than 4*categoryCount*threadCount\n";
+        }
+
+        std::vector<Colouring> P(strategies.size() * populationSize);
         //lock[i] = true -> i-th individual is free for mating
-        std::vector<std::atomic<bool>> isFree(strategies.size() * populationSize);
-
-        //flag for a found solution.
-        bool abort = false;
-
-        #pragma omp parallel
-        {
-            typedef std::mt19937::result_type seed_type;
-            typename std::chrono::system_clock seed_clock;
-            auto init_seed = static_cast<seed_type>(seed_clock.now().time_since_epoch().count());
-            init_seed += static_cast<seed_type>(omp_get_thread_num());
-            std::mt19937 generator(init_seed);
-
-            auto matingPopulationSize = populationSize / 2;
-            std::uniform_int_distribution<size_t> distribution(0, populationSize - 1);
-
-            std::vector<std::uniform_int_distribution<size_t>> initOprDists;
-            initOprDists.reserve(strategies.size());
-            std::vector<std::uniform_int_distribution<size_t>> crossoverOprDists;
-            crossoverOprDists.reserve(strategies.size());
-            std::vector<std::uniform_int_distribution<size_t>> lsOprDists;
-            lsOprDists.reserve(strategies.size());
-
-            for (auto &category : strategies) {
-                initOprDists.emplace_back(0, category->initOperators.size() - 1);
-                crossoverOprDists.emplace_back(0, category->crossoverOperators.size() - 1);
-                lsOprDists.emplace_back(0, category->lsOperators.size() - 1);
+        std::vector<std::atomic<bool>> lock(strategies.size() * populationSize);
+        std::vector<ColouringStrategyContext> context(strategies.size());
+        for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
+            if (strategies[strategyId]->isFixedKStrategy()) {
+                context[strategyId].fixed_k = k;
+                context[strategyId].activeThreadsCount = 0;
             }
+        }
 
-            #pragma omp for collapse(2)
-            for (size_t strategy = 0; strategy < strategies.size(); strategy++) {
-                for (size_t i = 0; i < populationSize; i++) {
-                    #pragma omp flush (abort)
-                    if (!abort) {
-                        P[strategy * populationSize + i] =
-                                strategies[strategy]->initOperators[initOprDists[strategy](generator)](G, k);
-                        isFree[strategy * populationSize + i] = true;
-                        if (strategies[strategy]->isSolution(G, k, P[strategy * populationSize + i])) {
-                            abort = true;
-                            #pragma omp flush (abort)
+        //Represents the smallest number of colors used in a recently found colouring
+        std::atomic<size_t> target_k(k);
+        //We multiply the capacity with factor 2 because it is possible for a strategy to find
+        //a valid colouring with at most k colors and thuse requires the queue to be refilled with new
+        //working packages for knext > k colouring
+        boost::lockfree::queue<WorkingPackage> workQueue(populationSize * strategies.size());
+
+        //It is possible that all threads report the same found k colouring
+        boost::lockfree::queue<MasterPackage> masterQueue(k * threadCount);
+
+        //Used to signal the termination of the worker pool
+        std::atomic<bool> terminated(false);
+
+        //Init work queue
+        for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
+            for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
+                workQueue.push({0, strategyId, target_k, colouringId});
+                lock[strategyId * populationSize + colouringId] = true;
+            }
+        }
+
+        std::vector<std::thread> workerPool;
+        workerPool.reserve(threadCount);
+        for (size_t threadId = 0; threadId < threadCount; threadId++) {
+            workerPool.emplace_back(workerThread,
+                                    std::cref(strategies),
+                                    std::cref(G),
+                                    populationSize,
+                                    maxItr,
+                                    threadId,
+                                    std::ref(context),
+                                    std::ref(workQueue),
+                                    std::ref(masterQueue),
+                                    std::ref(P),
+                                    std::ref(lock),
+                                    std::ref(target_k),
+                                    std::ref(terminated));
+        }
+
+        MasterPackage mp = {0};
+        while (!workQueue.empty() || !masterQueue.empty()) {
+            while (masterQueue.pop(mp)) {
+                target_k = mp.next_k - 1;
+                for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
+                    if (strategies[strategyId]->isFixedKStrategy()) {
+                        //Needed t
+                        while (context[strategyId].activeThreadsCount > 0) {
+                            std::this_thread::yield();
+                        }
+                        for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
+                            workQueue.push({0, strategyId, target_k, colouringId});
+                            lock[strategyId * populationSize + colouringId] = true;
                         }
                     }
                 }
             }
+            std::this_thread::yield();
+        }
+        terminated = true;
 
-            if (!abort) {
-                #pragma omp for collapse(3)
-                for (size_t itr = 0; itr < maxItr; itr++) {
-                    for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
-                        for (size_t matingPair = 0; matingPair < matingPopulationSize; matingPair++) {
-                            #pragma omp flush (abort)
-                            if (!abort) {
-                                auto p1 = chooseParent(isFree, strategyId, populationSize, generator, distribution);
-                                auto p2 = chooseParent(isFree, strategyId, populationSize, generator, distribution);
-
-                                std::array<Colouring *, 2> parents = {&P[p1], &P[p2]};
-                                auto weakerParent = static_cast<size_t>(strategies[strategyId]->compare(G, *parents[0],
-                                                                                                        *parents[1]));
-
-                                auto crossoverOp = strategies[strategyId]->crossoverOperators[
-                                        crossoverOprDists[strategyId](generator)];
-                                auto lsOp = strategies[strategyId]->lsOperators[
-                                        lsOprDists[strategyId](generator)];
-
-                                *parents[weakerParent] = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
-
-                                if (strategies[strategyId]->isSolution(G, k, *parents[weakerParent])) {
-                                    abort = true;
-                                    #pragma omp flush (abort)
-                                } else {
-                                    isFree[p1] = true;
-                                    isFree[p2] = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        for (auto &worker : workerPool) {
+            worker.join();
         }
 
         std::vector<ColouringResult> bestResults(strategies.size());
@@ -176,50 +318,14 @@ namespace graph_colouring {
         return bestResults;
     }
 
-    std::vector<ColouringResult> colouringAlgorithm(const std::vector<std::shared_ptr<ColouringStrategy> > &strategies,
-                                                    const graph_access &G,
-                                                    const size_t k,
-                                                    const size_t populationSize,
-                                                    const size_t maxItr,
-                                                    const bool repeat,
-                                                    std::ostream *outStream) {
+    std::vector<ColouringResult>
+    colouringAlgorithm(const std::vector<std::shared_ptr<ColouringStrategy> > &strategies,
+                       const graph_access &G,
+                       const size_t k,
+                       const size_t populationSize,
+                       const size_t maxItr,
+                       const size_t threadCount) {
 
-        assert(!strategies.empty());
-
-        if (4 * omp_get_max_threads() > strategies.size() * populationSize) {
-            std::cerr << "WARNING: Make sure that populationSize is bigger than 4*numberCategories*numberCPUCores\n";
-        }
-
-        auto current_k = k;
-        std::vector<ColouringResult> results;
-        bool foundSolution;
-        do {
-            foundSolution = false;
-            results = performColouringAlgorithmIteration(strategies, G, current_k, populationSize, maxItr);
-
-            for (auto &result : results) {
-                if (result.strategy->isSolution(G, current_k, result.s)) {
-                    foundSolution = true;
-                    break;
-                }
-            }
-            if (outStream != nullptr) {
-                std::ostream &out = *outStream;
-                for (auto &result : results) {
-                    out << "###################################\n";
-                    out << "Current k: " << current_k << "\n";
-                    out << "Best Solutions:\n";
-                    if (result.strategy->isSolution(G, current_k, result.s)) {
-                        std::cout << " VALID  : ";
-                    } else {
-                        std::cout << " INVALID: ";
-                    }
-                    out << result.s << "\n";
-                    out << "###################################\n";
-                }
-            }
-            current_k--;
-        } while (foundSolution && repeat);
-        return results;
+        return ColouringAlgorithm().perform(strategies, G, k, populationSize, maxItr, threadCount);
     }
 }

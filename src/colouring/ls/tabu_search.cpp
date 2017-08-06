@@ -14,7 +14,6 @@ Colouring graph_colouring::tabuSearchOperator(const graph_access &G,
     auto tl = static_cast<size_t>(distribution(generator)
                                   + alpha * numberOfConflictingNodes(G, s_mutated));
 
-
     //Number of classes
     const size_t k = colorCount(s_mutated);
     //Number of nodes

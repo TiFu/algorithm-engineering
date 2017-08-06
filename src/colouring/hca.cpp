@@ -14,15 +14,10 @@ namespace graph_colouring {
             const size_t L,
             const size_t A,
             const double alpha,
-            bool repeat,
-            std::ostream *logStream) {
-        std::vector<InitOperator> hcaInitOps = {[L, A, alpha](const graph_access &graph,
+            const size_t threadCount) {
+        std::vector<InitOperator> hcaInitOps = {[](const graph_access &graph,
                                                               const size_t colors) {
-            return graph_colouring::tabuSearchOperator(graph,
-                                                       graph_colouring::initByGreedySaturation(graph, colors),
-                                                       L,
-                                                       A,
-                                                       alpha);
+            return graph_colouring::initByGreedySaturation(graph, colors);
 
         }};
         std::vector<CrossoverOperator> hcaCrossoverOps = {[](const graph_access &G_,
@@ -44,7 +39,6 @@ namespace graph_colouring {
                                   k,
                                   population_size,
                                   maxItr,
-                                  repeat,
-                                  logStream)[0].s;
+                                  threadCount)[0].s;
     }
 }

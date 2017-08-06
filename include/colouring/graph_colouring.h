@@ -6,6 +6,7 @@
 #include <random>
 #include <set>
 #include <memory>
+#include <thread>
 
 template<typename T>
 std::ostream &operator<<(std::ostream &strm, const std::set<T> &set) {
@@ -51,20 +52,20 @@ namespace graph_colouring {
      * The parameter k represents the (desired) number of colors for the configuration.
      */
     typedef std::function<Colouring(const graph_access &G,
-                                        const size_t k)> InitOperator;
+                                    const size_t k)> InitOperator;
 
     /**
      * Creates a new colouring based on two existing parent configurations s1 and s2.
      */
     typedef std::function<Colouring(const graph_access &G,
-                                        const Colouring &s1,
-                                        const Colouring &s2)> CrossoverOperator;
+                                    const Colouring &s1,
+                                    const Colouring &s2)> CrossoverOperator;
 
     /**
      * Optimizes / mutates the existign colouring s.
      */
     typedef std::function<Colouring(const graph_access &G,
-                                        const Colouring &s)> LSOperator;
+                                    const Colouring &s)> LSOperator;
 
     /**
      * @param s a graph colouring
@@ -164,11 +165,18 @@ namespace graph_colouring {
          */
         virtual bool isSolution(const graph_access &G,
                                 const size_t k,
-                                const Colouring &s) {
+                                const Colouring &s) const {
             return colorCount(s) <= k &&
                    numberOfConflictingEdges(G, s) == 0 &&
                    isFullyColoured(s);
         }
+
+        /**
+         * @return true if this colouring strategy is supposed to use a fixed number of
+         * colourings. The ColouringAlgorithm will re-start the genetic algorithm on the populations
+         * induced by this strategy if a valid colouring with less or equal specified colors has ben found.
+         */
+        virtual bool isFixedKStrategy() const = 0;
 
         /**
          * Used to compare the scoring of two coloring.
@@ -179,7 +187,7 @@ namespace graph_colouring {
          */
         virtual bool compare(const graph_access &G,
                              const Colouring &a,
-                             const Colouring &b) = 0;
+                             const Colouring &b) const = 0;
 
         /**< Used initialization operators */
         const std::vector<InitOperator> &initOperators;
@@ -202,9 +210,36 @@ namespace graph_colouring {
 
         bool compare(const graph_access &G,
                      const Colouring &a,
-                     const Colouring &b) override {
+                     const Colouring &b) const override {
             return numberOfConflictingEdges(G, a) >
                    numberOfConflictingEdges(G, b);
+        }
+
+        bool isFixedKStrategy() const override {
+            return true;
+        }
+    };
+
+    /**
+     * This strategy is supposed for operator families which can handle valid colourings
+     */
+    class ValidColouringStrategy : public ColouringStrategy {
+    public:
+        ValidColouringStrategy(const std::vector<InitOperator> &initOperators,
+                               const std::vector<CrossoverOperator> &crossoverOperators,
+                               const std::vector<LSOperator> &lsOperators) :
+                ColouringStrategy(initOperators, crossoverOperators, lsOperators) {
+        }
+
+        bool compare(const graph_access &G,
+                     const Colouring &a,
+                     const Colouring &b) const override {
+            return colorCount(a) >
+                   colorCount(b);
+        }
+
+        bool isFixedKStrategy() const override {
+            return false;
         }
     };
 
@@ -214,24 +249,31 @@ namespace graph_colouring {
     struct ColouringResult {
         /**< The best configuration */
         Colouring s;
-        /**< The algorithm category used to retrieve the corresponding category*/
+        /**< The algorithm category used to retrieve the corresponding category */
         std::shared_ptr<ColouringStrategy> strategy;
+    };
+
+    class ColouringAlgorithm {
+    public:
+        std::vector<ColouringResult> perform(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
+                                             const graph_access &G,
+                                             size_t k,
+                                             size_t populationSize,
+                                             size_t maxItr,
+                                             size_t threadCount = std::thread::hardware_concurrency());
     };
 
     /**
      * The main entry point for executing the genetic algorithm in parallel.
-     * It will maintain a polulation for each colouring strategy passed to this function.
+     * It will maintain a population for each colouring strategy passed to this function.
      * For each iteration and strategy, the algorithm will choose randomly select one
-     * operator to perform a coresponding action.
+     * operator to perform a corresponding action.
      * @param strategies the categories of operators and scoring functions used in this run
      * @param G the target graph
      * @param k the (maximum) number of colors
      * @param populationSize the number of maintained colourings
      * @param maxItr the maximum number of iterations
-     * @param repeat if true, the algorithm will repeat the entire execution
-     * with a smaller value for k (k-1, k-2, k-3, ...) as long as a valid solution
-     * for k-i coloring could be obtained in the previous runs
-     * @param outStream
+     * @param threadCount the number of used threads
      * @return the best colourings for each passed colouring category
      */
     std::vector<ColouringResult>
@@ -240,7 +282,6 @@ namespace graph_colouring {
                        size_t k,
                        size_t populationSize,
                        size_t maxItr,
-                       bool repeat = true,
-                       std::ostream *outStream = nullptr);
+                       size_t threadCount = std::thread::hardware_concurrency());
 
 }
