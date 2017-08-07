@@ -256,6 +256,19 @@ namespace graph_colouring {
 
     class ColouringAlgorithm {
     public:
+        /**
+         * The main entry point for executing the genetic algorithm in parallel.
+         * It will maintain a population for each colouring strategy passed to this function.
+         * For each iteration and strategy, the algorithm will choose randomly select one
+         * operator to perform a corresponding action.
+         * @param strategies the categories of operators and scoring functions used in this run
+         * @param G the target graph
+         * @param k the (maximum) number of colors
+         * @param populationSize the number of maintained colourings
+         * @param maxItr the maximum number of iterations
+         * @param threadCount the number of used threads
+         * @return the best colourings for each passed colouring category
+         */
         std::vector<ColouringResult> perform(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
                                              const graph_access &G,
                                              size_t k,
@@ -264,25 +277,5 @@ namespace graph_colouring {
                                              size_t threadCount = std::thread::hardware_concurrency());
     };
 
-    /**
-     * The main entry point for executing the genetic algorithm in parallel.
-     * It will maintain a population for each colouring strategy passed to this function.
-     * For each iteration and strategy, the algorithm will choose randomly select one
-     * operator to perform a corresponding action.
-     * @param strategies the categories of operators and scoring functions used in this run
-     * @param G the target graph
-     * @param k the (maximum) number of colors
-     * @param populationSize the number of maintained colourings
-     * @param maxItr the maximum number of iterations
-     * @param threadCount the number of used threads
-     * @return the best colourings for each passed colouring category
-     */
-    std::vector<ColouringResult>
-    colouringAlgorithm(const std::vector<std::shared_ptr<ColouringStrategy> > &strategies,
-                       const graph_access &G,
-                       size_t k,
-                       size_t populationSize,
-                       size_t maxItr,
-                       size_t threadCount = std::thread::hardware_concurrency());
 
 }

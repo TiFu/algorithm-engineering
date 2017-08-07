@@ -14,7 +14,7 @@ set(BOOST_REQUESTED_VERSION 1.61.0)
 find_package(Boost COMPONENTS lockfeee)
 
 #Common flags and variables
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${ROOT}/include)
 

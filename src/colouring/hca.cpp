@@ -16,7 +16,7 @@ namespace graph_colouring {
             const double alpha,
             const size_t threadCount) {
         std::vector<InitOperator> hcaInitOps = {[](const graph_access &graph,
-                                                              const size_t colors) {
+                                                   const size_t colors) {
             return graph_colouring::initByGreedySaturation(graph, colors);
 
         }};
@@ -34,11 +34,11 @@ namespace graph_colouring {
                                                                           hcaCrossoverOps,
                                                                           hcaLSOps);
 
-        return colouringAlgorithm({invalidColoring},
-                                  G,
-                                  k,
-                                  population_size,
-                                  maxItr,
-                                  threadCount)[0].s;
+        return ColouringAlgorithm().perform({invalidColoring},
+                                            G,
+                                            k,
+                                            population_size,
+                                            maxItr,
+                                            threadCount)[0].s;
     }
 }

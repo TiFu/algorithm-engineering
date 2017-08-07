@@ -37,11 +37,7 @@ namespace graph_colouring {
      */
     struct ColouringStrategyContext {
         /**> Counts the number of finished pedigrees (=populationSize/2) */
-        std::atomic<size_t> finishedCount;
-        /**> stores the number of active threads that are processing working packages
-         * of the associalte colouring strategy
-         */
-        std::atomic<size_t> activeThreadsCount;
+        std::atomic<size_t> wpCount;
     };
 
     size_t colorCount(const Colouring &s) {
@@ -137,10 +133,9 @@ namespace graph_colouring {
                 const ColouringStrategy &strategy = *strategies[wp.strategyId];
 
                 if (target_k < wp.target_k && strategy.isFixedKStrategy()) {
+                    context[wp.strategyId].wpCount.fetch_sub(1);
                     continue;
                 }
-
-                context[wp.strategyId].activeThreadsCount.fetch_add(1);
 
                 if (wp.itr > 0) {
                     auto p1 = chooseParent(wp.strategyId, populationSize, lock, generator);
@@ -175,7 +170,7 @@ namespace graph_colouring {
                     if (wp.itr < maxItr) {
                         workQueue.push({wp.itr + 1, wp.strategyId, wp.target_k, wp.colouring});
                     } else {
-                        context[wp.strategyId].finishedCount.fetch_add(1);
+                        context[wp.strategyId].wpCount.fetch_sub(1);
                     }
                 } else {
                     std::uniform_int_distribution<size_t> initOprDist(0, strategy.initOperators.size() - 1);
@@ -198,18 +193,18 @@ namespace graph_colouring {
                     auto matingPopulationSize = populationSize / 2;
                     if (wp.colouring < matingPopulationSize) {
                         workQueue.push({wp.itr + 1, wp.strategyId, wp.target_k, wp.colouring});
+                    } else {
+                        context[wp.strategyId].wpCount.fetch_sub(1);
                     }
                 }
-                context[wp.strategyId].activeThreadsCount.fetch_sub(1);
             }
             std::this_thread::yield();
         }
     }
 
-    bool hasFinished(const std::vector<ColouringStrategyContext> &context,
-                     const size_t populationSize) {
+    bool hasFinished(const std::vector<ColouringStrategyContext> &context) {
         for (auto &c : context) {
-            if (c.finishedCount < populationSize / 2) {
+            if (c.wpCount > 0) {
                 return false;
             }
         }
@@ -237,30 +232,16 @@ namespace graph_colouring {
         //lock[i] = true -> i-th individual is free for mating
         std::vector<std::atomic<bool>> lock(strategies.size() * populationSize);
         std::vector<ColouringStrategyContext> context(strategies.size());
-        for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
-            if (strategies[strategyId]->isFixedKStrategy()) {
-                context[strategyId].finishedCount = 0;
-                context[strategyId].activeThreadsCount = 0;
-            }
-        }
 
         //Represents the smallest number of colors used in a recently found colouring
         std::atomic<size_t> target_k(k);
-        boost::lockfree::queue<WorkingPackage> workQueue(populationSize * strategies.size() * 2);
+        boost::lockfree::queue<WorkingPackage> workQueue(populationSize * strategies.size() * k);
 
         //It is possible that all threads report the same found k colouring
         boost::lockfree::queue<MasterPackage> masterQueue(k * threadCount);
 
         //Used to signal the termination of the worker pool
         std::atomic<bool> terminated(false);
-
-        //Init work queue
-        for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
-            for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
-                lock[strategyId * populationSize + colouringId] = true;
-                workQueue.push({0, strategyId, target_k, colouringId});
-            }
-        }
 
         std::vector<std::thread> workerPool;
         workerPool.reserve(threadCount);
@@ -280,21 +261,31 @@ namespace graph_colouring {
                                     std::ref(terminated));
         }
 
+        //Init work queue
+        for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
+            for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
+                lock[strategyId * populationSize + colouringId] = true;
+                context[strategyId].wpCount.fetch_add(1);
+                workQueue.push({0, strategyId, target_k, colouringId});
+            }
+        }
+
         MasterPackage mp = {0};
-        while (!hasFinished(context, populationSize)) {
+        while (!hasFinished(context)) {
             while (masterQueue.pop(mp)) {
                 target_k = mp.next_k - 1;
                 for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
                     if (strategies[strategyId]->isFixedKStrategy()) {
                         //Wait until every worker stopped working on the effected population
-                        while (context[strategyId].activeThreadsCount > 0) {
+                        while (context[strategyId].wpCount > 0) {
                             std::this_thread::yield();
                         }
-                        context[strategyId].finishedCount = 0;
+                        context[strategyId].wpCount = 0;
                         for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
                             lock[strategyId * populationSize + colouringId] = true;
                         }
                         for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
+                            context[strategyId].wpCount.fetch_add(1);
                             workQueue.push({0, strategyId, target_k, colouringId});
                         }
                     }
@@ -320,16 +311,5 @@ namespace graph_colouring {
             bestResults[strategyId] = {P[best], strategies[strategyId]};
         }
         return bestResults;
-    }
-
-    std::vector<ColouringResult>
-    colouringAlgorithm(const std::vector<std::shared_ptr<ColouringStrategy> > &strategies,
-                       const graph_access &G,
-                       const size_t k,
-                       const size_t populationSize,
-                       const size_t maxItr,
-                       const size_t threadCount) {
-
-        return ColouringAlgorithm().perform(strategies, G, k, populationSize, maxItr, threadCount);
     }
 }

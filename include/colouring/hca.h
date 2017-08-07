@@ -21,12 +21,12 @@ namespace graph_colouring {
      * @return the best found colouring
      */
     Colouring hybridColouringAlgorithm(const graph_access &G,
-                                           size_t k,
-                                           size_t populationSize,
-                                           size_t maxItr,
-                                           size_t L,
-                                           size_t A,
-                                           double alpha,
-                                           size_t threadCount = std::thread::hardware_concurrency());
+                                       size_t k,
+                                       size_t populationSize,
+                                       size_t maxItr,
+                                       size_t L,
+                                       size_t A,
+                                       double alpha,
+                                       size_t threadCount = std::thread::hardware_concurrency());
 
 }
