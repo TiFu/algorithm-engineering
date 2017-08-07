@@ -8,7 +8,7 @@ namespace graph_colouring {
 
     Colouring hybridColouringAlgorithm(
             const graph_access &G,
-            const size_t k,
+            const ColorCount k,
             const size_t population_size,
             const size_t maxItr,
             const size_t L,
@@ -16,18 +16,18 @@ namespace graph_colouring {
             const double alpha,
             const size_t threadCount) {
         std::vector<InitOperator> hcaInitOps = {[](const graph_access &graph,
-                                                   const size_t colors) {
+                                                   const ColorCount colors) {
             return graph_colouring::initByGreedySaturation(graph, colors);
 
         }};
-        std::vector<CrossoverOperator> hcaCrossoverOps = {[](const graph_access &G_,
-                                                             const Colouring &s1,
-                                                             const Colouring &s2) {
+        std::vector<CrossoverOperator> hcaCrossoverOps = {[](const Colouring &s1,
+                                                             const Colouring &s2,
+                                                             const graph_access &graph) {
             return graph_colouring::gpxCrossover(s1, s2);
         }};
-        std::vector<LSOperator> hcaLSOps = {[L, A, alpha](const graph_access &graph,
-                                                          const Colouring &s) {
-            return graph_colouring::tabuSearchOperator(graph, s, L, A, alpha);
+        std::vector<LSOperator> hcaLSOps = {[L, A, alpha](const Colouring &s,
+                                                          const graph_access &graph) {
+            return graph_colouring::tabuSearchOperator(s, graph, L, A, alpha);
         }};
 
         auto invalidColoring = std::make_shared<InvalidColouringStrategy>(hcaInitOps,

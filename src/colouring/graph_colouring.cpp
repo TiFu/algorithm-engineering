@@ -19,7 +19,7 @@ namespace graph_colouring {
         /**< The used colouring strategy */
         size_t strategyId;
         /**< The number of colors used for the colouring strategy */
-        size_t target_k;
+        ColorCount target_k;
         /**< The index of the first colouring */
         size_t colouring;
     };
@@ -29,7 +29,7 @@ namespace graph_colouring {
      */
     struct MasterPackage {
         /**< The next k to be searched */
-        size_t next_k;
+        ColorCount next_k;
     };
 
     /**
@@ -40,9 +40,9 @@ namespace graph_colouring {
         std::atomic<size_t> wpCount;
     };
 
-    size_t colorCount(const Colouring &s) {
+    ColorCount colorCount(const Colouring &s) {
         std::vector<bool> usedColor(s.size());
-        size_t color_count = 0;
+        ColorCount color_count = 0;
         for (auto n : s) {
             if (n != UNCOLORED && !usedColor[n]) {
                 usedColor[n] = true;
@@ -105,6 +105,15 @@ namespace graph_colouring {
         return nextTry;
     }
 
+    inline bool hasFinished(const std::vector<ColouringStrategyContext> &context) {
+        for (auto &c : context) {
+            if (c.wpCount > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     static void workerThread(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
                              const graph_access &G,
                              const size_t populationSize,
@@ -115,7 +124,7 @@ namespace graph_colouring {
                              boost::lockfree::queue<MasterPackage> &masterQueue,
                              std::vector<Colouring> &population,
                              std::vector<std::atomic<bool>> &lock,
-                             std::atomic<size_t> &target_k,
+                             std::atomic<ColorCount> &target_k,
                              std::atomic<bool> &terminated) {
         typedef std::mt19937::result_type seed_type;
         typename std::chrono::system_clock seed_clock;
@@ -125,7 +134,7 @@ namespace graph_colouring {
         std::mt19937 generator(init_seed);
 
         //Only used to avoid rapid reporting of already known colourings
-        size_t last_reported_k = target_k + 1;
+        ColorCount last_reported_k = target_k + 1;
 
         WorkingPackage wp = {0, 0, 0, 0};
         while (!terminated) {
@@ -157,7 +166,7 @@ namespace graph_colouring {
                     auto lsOp = strategies[wp.strategyId]->lsOperators[
                             lsOprDist(generator)];
 
-                    result = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
+                    result = lsOp(crossoverOp(*parents[0], *parents[1], G), G);
                     *parents[weakerParent] = result;
 
                     lock[p1] = false;
@@ -175,7 +184,7 @@ namespace graph_colouring {
                     auto initOpr = strategy.initOperators[initOprDist(generator)];
                     auto lsOpr = strategy.lsOperators[lsOprDist(generator)];
 
-                    result = lsOpr(G, initOpr(G, wp.target_k));
+                    result = lsOpr(initOpr(G, wp.target_k), G);
                     population[wp.strategyId * populationSize + wp.colouring] = result;
 
                     lock[wp.strategyId * populationSize + wp.colouring] = false;
@@ -196,19 +205,10 @@ namespace graph_colouring {
         }
     }
 
-    bool hasFinished(const std::vector<ColouringStrategyContext> &context) {
-        for (auto &c : context) {
-            if (c.wpCount > 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     std::vector<ColouringResult>
     ColouringAlgorithm::perform(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
                                 const graph_access &G,
-                                const size_t k,
+                                const ColorCount k,
                                 const size_t populationSize,
                                 const size_t maxItr,
                                 const size_t threadCount) {
@@ -228,7 +228,7 @@ namespace graph_colouring {
         std::vector<ColouringStrategyContext> context(strategies.size());
 
         //Represents the smallest number of colors used in a recently found colouring
-        std::atomic<size_t> target_k(k);
+        std::atomic<ColorCount> target_k(k);
         boost::lockfree::queue<WorkingPackage> workQueue(populationSize * strategies.size());
 
         //It is possible that all threads report the same found k colouring

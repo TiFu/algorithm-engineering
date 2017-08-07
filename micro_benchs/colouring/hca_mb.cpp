@@ -14,8 +14,8 @@ void BM_hca(benchmark::State &state,
         graph_io::readGraphWeighted(G, graphFile);
 
         auto threadCount = size_t(state.range(0));
-        auto min_k = size_t(state.range(1));
-        auto k = size_t(state.range(2));
+        auto min_k = ColorCount(state.range(1));
+        auto k = ColorCount(state.range(2));
         auto population_size = size_t(state.range(3));
         auto maxItr = size_t(state.range(4));
         auto L = size_t(state.range(5));

@@ -57,18 +57,17 @@ TEST(GraphColouring, parallelSchedule) {
     }};
 
     std::vector<CrossoverOperator> crossoverOps = {
-            [](const graph_access &G_,
-               const Colouring &s1,
-               const Colouring &s2) {
+            [](const Colouring &s1,
+               const Colouring &s2,
+               const graph_access &graph) {
                 return s1;
-            }, [](const graph_access &G_,
-                  const Colouring &s1,
-                  const Colouring &s2) {
+            }, [](const Colouring &s1,
+                  const Colouring &s2,
+                  const graph_access &graph) {
                 return s2;
             }};
 
-    std::vector<LSOperator> lsOps = {[](const graph_access &graph,
-                                        const Colouring &s) {
+    std::vector<LSOperator> lsOps = {[](const Colouring &s, const graph_access &graph) {
         return s;
     }};
 
@@ -84,9 +83,10 @@ TEST(GraphColouring, parallelSchedule) {
 
     size_t executionCounter = 0;
     std::vector<CrossoverOperator> crossoverOps2 = {
-            [&executionCounter](const graph_access &G_,
+            [&executionCounter](
                const Colouring &s1,
-               const Colouring &s2) {
+               const Colouring &s2,
+               const graph_access &graph) {
                 executionCounter++;
                 if(executionCounter > 100) {
                     Colouring solution(s1.size());
@@ -98,8 +98,8 @@ TEST(GraphColouring, parallelSchedule) {
                 return s1;
             }};
 
-    std::vector<LSOperator> lsOps2 = {[](const graph_access &graph,
-                                         const Colouring &s) {
+    std::vector<LSOperator> lsOps2 = {[](const Colouring &s,
+                                         const graph_access &graph) {
         return s;
     }};
 

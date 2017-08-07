@@ -2,11 +2,11 @@
 
 using namespace graph_colouring;
 
-Colouring graph_colouring::tabuSearchOperator(const graph_access &G,
-                                                  const Colouring &s,
-                                                  const size_t L,
-                                                  const size_t A,
-                                                  const double alpha) {
+Colouring graph_colouring::tabuSearchOperator(const Colouring &s,
+                                              const graph_access &G,
+                                              const size_t L,
+                                              const size_t A,
+                                              const double alpha) {
     Colouring s_mutated(s);
     std::uniform_int_distribution<size_t> distribution(0, A - 1);
     std::mt19937 generator;
@@ -15,7 +15,7 @@ Colouring graph_colouring::tabuSearchOperator(const graph_access &G,
                                   + alpha * numberOfConflictingNodes(G, s_mutated));
 
     //Number of classes
-    const size_t k = colorCount(s_mutated);
+    const ColorCount k = colorCount(s_mutated);
     //Number of nodes
     const size_t V = G.number_of_nodes();
 

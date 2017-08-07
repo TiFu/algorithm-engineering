@@ -11,5 +11,5 @@ namespace graph_colouring {
      * @return a new colouring based on the two parents
      */
     Colouring gpxCrossover(const Colouring &s1,
-                                 const Colouring &s2);
+                           const Colouring &s2);
 }

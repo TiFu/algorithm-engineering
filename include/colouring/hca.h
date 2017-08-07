@@ -21,7 +21,7 @@ namespace graph_colouring {
      * @return the best found colouring
      */
     Colouring hybridColouringAlgorithm(const graph_access &G,
-                                       size_t k,
+                                       ColorCount k,
                                        size_t populationSize,
                                        size_t maxItr,
                                        size_t L,

@@ -1,5 +1,7 @@
 #include "colouring/init/greedy_saturation.h"
 
+using namespace graph_colouring;
+
 inline std::set<NodeID> toSet(const graph_access &G) {
     std::set<NodeID> nodes;
     for (NodeID n = 0; n < G.number_of_nodes(); n++) {
@@ -8,24 +10,24 @@ inline std::set<NodeID> toSet(const graph_access &G) {
     return nodes;
 }
 
-static size_t numberOfAllowedClasses(const graph_access &G,
-                                     const graph_colouring::Colouring &s,
-                                     const NodeID nodeID,
-                                     const size_t k) {
-    size_t count = 0;
+static ColorCount numberOfAllowedClasses(const graph_access &G,
+                                         const Colouring &s,
+                                         const NodeID nodeID,
+                                         const ColorCount k) {
+    ColorCount count = 0;
     for (Color c = 0; c < k; c++) {
-        count += static_cast<size_t>(graph_colouring::allowedInClass(G, s, c, nodeID));
+        count += static_cast<ColorCount>(graph_colouring::allowedInClass(G, s, c, nodeID));
     }
     return count;
 }
 
 static NodeID nextNodeWithMinAllowedClasses(const graph_access &G,
-                                            const graph_colouring::Colouring &c,
+                                            const Colouring &c,
                                             const std::set<NodeID> &nodes,
-                                            const size_t k) {
+                                            const ColorCount k) {
     assert(!nodes.empty());
     NodeID targetNode = *nodes.begin();
-    size_t minNumberOfAllowedClasses = k;
+    ColorCount minNumberOfAllowedClasses = k;
     for (auto n : nodes) {
         auto count = numberOfAllowedClasses(G, c, n, k);
         if (count < minNumberOfAllowedClasses) {
@@ -36,8 +38,7 @@ static NodeID nextNodeWithMinAllowedClasses(const graph_access &G,
     return targetNode;
 }
 
-graph_colouring::Colouring graph_colouring::initByGreedySaturation(const graph_access &G,
-                                                                         const size_t k) {
+Colouring graph_colouring::initByGreedySaturation(const graph_access &G, const ColorCount k) {
     Colouring s(G.number_of_nodes(), std::numeric_limits<NodeID>::max());
 
     auto nodes = toSet(G);

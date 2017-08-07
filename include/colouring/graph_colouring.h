@@ -41,6 +41,8 @@ std::ostream &operator<<(std::ostream &strm, const std::vector<T> &set) {
 
 namespace graph_colouring {
 
+    typedef Color ColorCount;
+
     /**
      * Represents a colouring of a specific graph where
      * config[n] = c means that color c is associated to node with node id n
@@ -54,26 +56,26 @@ namespace graph_colouring {
      * The parameter k represents the (desired) number of colors for the configuration.
      */
     typedef std::function<Colouring(const graph_access &G,
-                                    const size_t k)> InitOperator;
+                                    const ColorCount k)> InitOperator;
 
     /**
      * Creates a new colouring based on two existing parent configurations s1 and s2.
      */
-    typedef std::function<Colouring(const graph_access &G,
-                                    const Colouring &s1,
-                                    const Colouring &s2)> CrossoverOperator;
+    typedef std::function<Colouring(const Colouring &s1,
+                                    const Colouring &s2,
+                                    const graph_access &G)> CrossoverOperator;
 
     /**
      * Optimizes / mutates the existign colouring s.
      */
-    typedef std::function<Colouring(const graph_access &G,
-                                    const Colouring &s)> LSOperator;
+    typedef std::function<Colouring(const Colouring &s,
+                                    const graph_access &G)> LSOperator;
 
     /**
      * @param s a graph colouring
      * @return the number of colurs used in the configuration \s
      */
-    size_t colorCount(const Colouring &s);
+    ColorCount colorCount(const Colouring &s);
 
     /**
      * @param G the target graph
@@ -166,7 +168,7 @@ namespace graph_colouring {
          * @return true if the given coloring is a valid solution.
          */
         virtual bool isSolution(const graph_access &G,
-                                const size_t k,
+                                const ColorCount k,
                                 const Colouring &s) const {
             return colorCount(s) <= k &&
                    numberOfConflictingEdges(G, s) == 0 &&
@@ -272,7 +274,7 @@ namespace graph_colouring {
          */
         std::vector<ColouringResult> perform(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
                                              const graph_access &G,
-                                             size_t k,
+                                             ColorCount k,
                                              size_t populationSize,
                                              size_t maxItr,
                                              size_t threadCount = std::thread::hardware_concurrency());
