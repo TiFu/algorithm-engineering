@@ -137,6 +137,8 @@ namespace graph_colouring {
                     continue;
                 }
 
+                Colouring result;
+
                 if (wp.itr > 0) {
                     auto p1 = chooseParent(wp.strategyId, populationSize, lock, generator);
                     auto p2 = chooseParent(wp.strategyId, populationSize, lock, generator);
@@ -155,14 +157,8 @@ namespace graph_colouring {
                     auto lsOp = strategies[wp.strategyId]->lsOperators[
                             lsOprDist(generator)];
 
-                    auto &target = *parents[weakerParent];
-
-                    target = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
-
-                    if (strategy.isSolution(G, target_k, target) && last_reported_k >= target_k) {
-                        last_reported_k = colorCount(target);
-                        masterQueue.push({last_reported_k});
-                    }
+                    result = lsOp(G, crossoverOp(G, *parents[0], *parents[1]));
+                    *parents[weakerParent] = result;
 
                     lock[p1] = false;
                     lock[p2] = false;
@@ -179,14 +175,8 @@ namespace graph_colouring {
                     auto initOpr = strategy.initOperators[initOprDist(generator)];
                     auto lsOpr = strategy.lsOperators[lsOprDist(generator)];
 
-                    auto &target = population[wp.strategyId * populationSize + wp.colouring];
-
-                    target = lsOpr(G, initOpr(G, wp.target_k));
-
-                    if (strategy.isSolution(G, target_k, target) && last_reported_k > target_k) {
-                        last_reported_k = colorCount(target);
-                        masterQueue.push({last_reported_k});
-                    }
+                    result = lsOpr(G, initOpr(G, wp.target_k));
+                    population[wp.strategyId * populationSize + wp.colouring] = result;
 
                     lock[wp.strategyId * populationSize + wp.colouring] = false;
 
@@ -196,6 +186,10 @@ namespace graph_colouring {
                     } else {
                         context[wp.strategyId].wpCount.fetch_sub(1);
                     }
+                }
+                if (strategy.isSolution(G, target_k, result) && last_reported_k > target_k) {
+                    last_reported_k = colorCount(result);
+                    masterQueue.push({last_reported_k});
                 }
             }
             std::this_thread::yield();
