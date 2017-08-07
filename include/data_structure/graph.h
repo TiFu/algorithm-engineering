@@ -32,6 +32,8 @@ typedef uint32_t NodeID;
 typedef uint32_t EdgeID;
 typedef uint32_t Color;
 
+#define UNCOLORED std::numeric_limits<Color>::max()
+
 struct Node {
     EdgeID firstEdge;
 };

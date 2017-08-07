@@ -44,7 +44,8 @@ namespace graph_colouring {
     /**
      * Represents a colouring of a specific graph where
      * config[n] = c means that color c is associated to node with node id n
-     * Use config[n] = std::numeric_limits<Color>::max() to mark node n as uncoloured
+     * Use config[n] = UNCOLORED or config[n] = std::numeric_limits<Color>::max()
+     * to mark node n as uncoloured
      */
     typedef std::vector<Color> Colouring;
 
@@ -111,7 +112,7 @@ namespace graph_colouring {
     inline size_t numberOfUncolouredNodes(const Colouring &s) {
         size_t count = 0;
         for (auto n : s) {
-            if (n == std::numeric_limits<Color>::max()) {
+            if (n == UNCOLORED) {
                 count++;
             }
         }

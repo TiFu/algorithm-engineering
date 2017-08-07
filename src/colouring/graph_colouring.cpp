@@ -44,7 +44,7 @@ namespace graph_colouring {
         std::vector<bool> usedColor(s.size());
         size_t color_count = 0;
         for (auto n : s) {
-            if (n != std::numeric_limits<Color>::max() && !usedColor[n]) {
+            if (n != UNCOLORED && !usedColor[n]) {
                 usedColor[n] = true;
                 color_count++;
             }
@@ -229,10 +229,10 @@ namespace graph_colouring {
 
         //Represents the smallest number of colors used in a recently found colouring
         std::atomic<size_t> target_k(k);
-        boost::lockfree::queue<WorkingPackage> workQueue(populationSize * strategies.size() * k);
+        boost::lockfree::queue<WorkingPackage> workQueue(populationSize * strategies.size());
 
         //It is possible that all threads report the same found k colouring
-        boost::lockfree::queue<MasterPackage> masterQueue(k * threadCount);
+        boost::lockfree::queue<MasterPackage> masterQueue(k);
 
         //Used to signal the termination of the worker pool
         std::atomic<bool> terminated(false);
