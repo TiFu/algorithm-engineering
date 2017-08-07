@@ -10,7 +10,7 @@ include(ConfigSafeGuards)
 include(${CMAKE_MODULE_PATH}/DownloadProject/DownloadProject.cmake)
 
 #Boost
-set(BOOST_REQUESTED_VERSION 1.61)
+set(BOOST_REQUESTED_VERSION 1.61.0)
 find_package(Boost COMPONENTS lockfeee)
 
 #Common flags and variables
