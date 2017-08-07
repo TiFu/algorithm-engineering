@@ -6,10 +6,7 @@
 #include <gmock/gmock-matchers.h>
 #include <gmock/gmock.h>
 
-
-#include <boost/lockfree/queue.hpp>
 #include <debug.h>
-
 
 using namespace graph_colouring;
 
