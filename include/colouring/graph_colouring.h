@@ -7,6 +7,7 @@
 #include <set>
 #include <memory>
 #include <thread>
+#include <boost/lockfree/queue.hpp>
 
 template<typename T>
 std::ostream &operator<<(std::ostream &strm, const std::set<T> &set) {

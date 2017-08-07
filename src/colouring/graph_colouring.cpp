@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <debug.h>
 
-#include <boost/lockfree/queue.hpp>
-
 namespace graph_colouring {
 
     /**
@@ -38,10 +36,8 @@ namespace graph_colouring {
      * Used in the parallel colouring algorithm to track certain events
      */
     struct ColouringStrategyContext {
-        /**> contains the fixed number of k that are used for a fixed colouring strategy
-         * This value will be ignored if ColouringStrategy::isFixedKStrategy() returns true
-         */
-        std::atomic<size_t> fixed_k;
+        /**> Counts the number of finished pedigrees (=populationSize/2) */
+        std::atomic<size_t> finishedCount;
         /**> stores the number of active threads that are processing working packages
          * of the associalte colouring strategy
          */
@@ -135,21 +131,16 @@ namespace graph_colouring {
         //Only used to avoid rapid reporting of already known colourings
         size_t last_reported_k = target_k + 1;
 
+        WorkingPackage wp = {0, 0, 0, 0};
         while (!terminated) {
-            WorkingPackage wp = {0, 0, 0, 0};
-            if (workQueue.pop(wp)) {
+            while (workQueue.pop(wp)) {
                 const ColouringStrategy &strategy = *strategies[wp.strategyId];
-
-                //std::cerr << "(" << wp.itr << "," << wp.strategyId << "," << wp.target_k << "," << wp.colouring
-                //          << ")\n";
 
                 if (target_k < wp.target_k && strategy.isFixedKStrategy()) {
                     continue;
                 }
 
                 context[wp.strategyId].activeThreadsCount.fetch_add(1);
-
-                //std::cerr << context[wp.strategyId].activeThreadsCount << " " << wp.target_k << " " << target_k << "\n";
 
                 if (wp.itr > 0) {
                     auto p1 = chooseParent(wp.strategyId, populationSize, lock, generator);
@@ -160,7 +151,8 @@ namespace graph_colouring {
                                                                              *parents[0],
                                                                              *parents[1]));
 
-                    std::uniform_int_distribution<size_t> crossoverOprDist(0, strategy.crossoverOperators.size() - 1);
+                    std::uniform_int_distribution<size_t> crossoverOprDist(0,
+                                                                           strategy.crossoverOperators.size() - 1);
                     std::uniform_int_distribution<size_t> lsOprDist(0, strategy.lsOperators.size() - 1);
 
                     auto crossoverOp = strategy.crossoverOperators[
@@ -182,6 +174,8 @@ namespace graph_colouring {
 
                     if (wp.itr < maxItr) {
                         workQueue.push({wp.itr + 1, wp.strategyId, wp.target_k, wp.colouring});
+                    } else {
+                        context[wp.strategyId].finishedCount.fetch_add(1);
                     }
                 } else {
                     std::uniform_int_distribution<size_t> initOprDist(0, strategy.initOperators.size() - 1);
@@ -212,6 +206,16 @@ namespace graph_colouring {
         }
     }
 
+    bool hasFinished(const std::vector<ColouringStrategyContext> &context,
+                     const size_t populationSize) {
+        for (auto &c : context) {
+            if (c.finishedCount < populationSize / 2) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     std::vector<ColouringResult>
     ColouringAlgorithm::perform(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
                                 const graph_access &G,
@@ -235,17 +239,14 @@ namespace graph_colouring {
         std::vector<ColouringStrategyContext> context(strategies.size());
         for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
             if (strategies[strategyId]->isFixedKStrategy()) {
-                context[strategyId].fixed_k = k;
+                context[strategyId].finishedCount = 0;
                 context[strategyId].activeThreadsCount = 0;
             }
         }
 
         //Represents the smallest number of colors used in a recently found colouring
         std::atomic<size_t> target_k(k);
-        //We multiply the capacity with factor 2 because it is possible for a strategy to find
-        //a valid colouring with at most k colors and thuse requires the queue to be refilled with new
-        //working packages for knext > k colouring
-        boost::lockfree::queue<WorkingPackage> workQueue(populationSize * strategies.size());
+        boost::lockfree::queue<WorkingPackage> workQueue(populationSize * strategies.size() * 2);
 
         //It is possible that all threads report the same found k colouring
         boost::lockfree::queue<MasterPackage> masterQueue(k * threadCount);
@@ -256,8 +257,8 @@ namespace graph_colouring {
         //Init work queue
         for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
             for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
-                workQueue.push({0, strategyId, target_k, colouringId});
                 lock[strategyId * populationSize + colouringId] = true;
+                workQueue.push({0, strategyId, target_k, colouringId});
             }
         }
 
@@ -280,18 +281,21 @@ namespace graph_colouring {
         }
 
         MasterPackage mp = {0};
-        while (!workQueue.empty() || !masterQueue.empty()) {
+        while (!hasFinished(context, populationSize)) {
             while (masterQueue.pop(mp)) {
                 target_k = mp.next_k - 1;
                 for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
                     if (strategies[strategyId]->isFixedKStrategy()) {
-                        //Needed t
+                        //Wait until every worker stopped working on the effected population
                         while (context[strategyId].activeThreadsCount > 0) {
                             std::this_thread::yield();
                         }
+                        context[strategyId].finishedCount = 0;
+                        for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
+                            lock[strategyId * populationSize + colouringId] = true;
+                        }
                         for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
                             workQueue.push({0, strategyId, target_k, colouringId});
-                            lock[strategyId * populationSize + colouringId] = true;
                         }
                     }
                 }
