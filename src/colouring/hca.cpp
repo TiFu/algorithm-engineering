@@ -32,7 +32,7 @@ namespace graph_colouring {
             return graph_colouring::tabuSearchOperator(s, graph, L, A, alpha);
         }};
 
-        auto invalidColoring = std::make_shared<InvalidColouringStrategy>(hcaInitOps,
+        auto invalidColoring = std::make_shared<FixedKColouringStrategy>(hcaInitOps,
                                                                           hcaCrossoverOps,
                                                                           hcaLSOps);
 

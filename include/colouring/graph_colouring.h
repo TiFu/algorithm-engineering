@@ -204,9 +204,9 @@ namespace graph_colouring {
     /**
      * This strategy is supposed for operator families which can handle invalid colourings
      */
-    class InvalidColouringStrategy : public ColouringStrategy {
+    class FixedKColouringStrategy : public ColouringStrategy {
     public:
-        InvalidColouringStrategy(const std::vector<InitOperator> &initOperators,
+        FixedKColouringStrategy(const std::vector<InitOperator> &initOperators,
                                  const std::vector<CrossoverOperator> &crossoverOperators,
                                  const std::vector<LSOperator> &lsOperators) :
                 ColouringStrategy(initOperators, crossoverOperators, lsOperators) {
@@ -227,9 +227,9 @@ namespace graph_colouring {
     /**
      * This strategy is supposed for operator families which can handle valid colourings
      */
-    class ValidColouringStrategy : public ColouringStrategy {
+    class VariableColouringStrategy : public ColouringStrategy {
     public:
-        ValidColouringStrategy(const std::vector<InitOperator> &initOperators,
+        VariableColouringStrategy(const std::vector<InitOperator> &initOperators,
                                const std::vector<CrossoverOperator> &crossoverOperators,
                                const std::vector<LSOperator> &lsOperators) :
                 ColouringStrategy(initOperators, crossoverOperators, lsOperators) {

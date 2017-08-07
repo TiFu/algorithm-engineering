@@ -71,7 +71,7 @@ TEST(GraphColouring, parallelSchedule) {
         return s;
     }};
 
-    auto invalidColoring = std::make_shared<InvalidColouringStrategy>(initOps,
+    auto invalidColoring = std::make_shared<FixedKColouringStrategy>(initOps,
                                                                       crossoverOps,
                                                                       lsOps);
 
@@ -103,7 +103,7 @@ TEST(GraphColouring, parallelSchedule) {
         return s;
     }};
 
-    auto validColoring = std::make_shared<ValidColouringStrategy>(initOps2,
+    auto validColoring = std::make_shared<VariableColouringStrategy>(initOps2,
                                                                   crossoverOps2,
                                                                   lsOps2);
 
