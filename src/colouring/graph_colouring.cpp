@@ -267,20 +267,22 @@ namespace graph_colouring {
         MasterPackage mp = {0};
         while (!hasFinished(context)) {
             while (masterQueue.pop(mp)) {
-                target_k = mp.next_k - 1;
-                for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
-                    if (strategies[strategyId]->isFixedKStrategy()) {
-                        //Wait until every worker stopped working on the effected population
-                        while (context[strategyId].wpCount > 0) {
-                            std::this_thread::yield();
-                        }
-                        context[strategyId].wpCount = 0;
-                        for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
-                            lock[strategyId * populationSize + colouringId] = true;
-                        }
-                        for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
-                            context[strategyId].wpCount.fetch_add(1);
-                            workQueue.push({0, strategyId, target_k, colouringId});
+                if (target_k >= mp.next_k) {
+                    target_k = mp.next_k - 1;
+                    for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
+                        if (strategies[strategyId]->isFixedKStrategy()) {
+                            //Wait until every worker stopped working on the effected population
+                            while (context[strategyId].wpCount > 0) {
+                                std::this_thread::yield();
+                            }
+                            context[strategyId].wpCount = 0;
+                            for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
+                                lock[strategyId * populationSize + colouringId] = true;
+                            }
+                            for (size_t colouringId = 0; colouringId < populationSize; colouringId++) {
+                                context[strategyId].wpCount.fetch_add(1);
+                                workQueue.push({0, strategyId, target_k, colouringId});
+                            }
                         }
                     }
                 }
