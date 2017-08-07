@@ -18,6 +18,7 @@ namespace graph_colouring {
      * for k-i coloring could be obtained in the previous runs
      * @param logStream if specified, the algorithm will print out the results of each
      * iteration into the output stream
+     * @param outputStream if not null, it will be used to report recently found colourings
      * @return the best found colouring
      */
     Colouring hybridColouringAlgorithm(const graph_access &G,
@@ -27,6 +28,7 @@ namespace graph_colouring {
                                        size_t L,
                                        size_t A,
                                        double alpha,
-                                       size_t threadCount = std::thread::hardware_concurrency());
+                                       size_t threadCount = std::thread::hardware_concurrency(),
+                                       std::ostream *outputStream = nullptr);
 
 }

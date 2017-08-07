@@ -30,6 +30,9 @@ namespace graph_colouring {
     struct MasterPackage {
         /**< The next k to be searched */
         ColorCount next_k;
+        /**< The strategy which reported this found k */
+        size_t reportingStrategy;
+        /**< The actual colouring */
     };
 
     /**
@@ -198,7 +201,7 @@ namespace graph_colouring {
                 }
                 if (strategy.isSolution(G, target_k, result) && last_reported_k > target_k) {
                     last_reported_k = colorCount(result);
-                    masterQueue.push({last_reported_k});
+                    masterQueue.push({last_reported_k, wp.strategyId});
                 }
             }
             std::this_thread::yield();
@@ -211,7 +214,8 @@ namespace graph_colouring {
                                 const ColorCount k,
                                 const size_t populationSize,
                                 const size_t maxItr,
-                                const size_t threadCount) {
+                                const size_t threadCount,
+                                std::ostream *outputStream) {
 
         assert(!strategies.empty());
         assert(populationSize > 0);
@@ -220,6 +224,7 @@ namespace graph_colouring {
 
         if (4 * threadCount > strategies.size() * populationSize) {
             std::cerr << "WARNING: Make sure that populationSize is bigger than 4*categoryCount*threadCount\n";
+            assert(0);
         }
 
         std::vector<Colouring> P(strategies.size() * populationSize);
@@ -264,9 +269,14 @@ namespace graph_colouring {
             }
         }
 
-        MasterPackage mp = {0};
+        MasterPackage mp = {0, 0};
         while (!hasFinished(context)) {
             while (masterQueue.pop(mp)) {
+                if (outputStream != nullptr) {
+                    auto &ss = *outputStream;
+                    ss << "Found colouring k = " << mp.next_k
+                       << " from colouring strategy " << mp.reportingStrategy << "\n";
+                }
                 if (target_k >= mp.next_k) {
                     target_k = mp.next_k - 1;
                     for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {

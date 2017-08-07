@@ -14,7 +14,9 @@ namespace graph_colouring {
             const size_t L,
             const size_t A,
             const double alpha,
-            const size_t threadCount) {
+            const size_t threadCount,
+            std::ostream *outputStream) {
+
         std::vector<InitOperator> hcaInitOps = {[](const graph_access &graph,
                                                    const ColorCount colors) {
             return graph_colouring::initByGreedySaturation(graph, colors);
@@ -39,6 +41,7 @@ namespace graph_colouring {
                                             k,
                                             population_size,
                                             maxItr,
-                                            threadCount)[0].s;
+                                            threadCount,
+                                            outputStream)[0].s;
     }
 }

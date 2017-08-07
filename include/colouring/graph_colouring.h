@@ -269,7 +269,8 @@ namespace graph_colouring {
          * @param k the (maximum) number of colors
          * @param populationSize the number of maintained colourings
          * @param maxItr the maximum number of iterations
-         * @param threadCount the number of used threads
+         * @param threadCount the number of used worker threads
+         * @param outputStream if not null, it will be used to report recently found colourings
          * @return the best colourings for each passed colouring category
          */
         std::vector<ColouringResult> perform(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
@@ -277,7 +278,8 @@ namespace graph_colouring {
                                              ColorCount k,
                                              size_t populationSize,
                                              size_t maxItr,
-                                             size_t threadCount = std::thread::hardware_concurrency());
+                                             size_t threadCount = std::thread::hardware_concurrency(),
+                                             std::ostream *outputStream = nullptr);
     };
 
 
