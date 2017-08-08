@@ -6,7 +6,7 @@ $ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g
 $ make
 ```
 The unit tests in the test directory shows you how to use certain parts of the colouring algorithm.
-The File [tests/io/graph_io_test.cpp] [tests/io/graph_io_test.cpp], for instance, contains an example how to use graph data structure.
+The File [tests/io/graph_io_test.cpp](tests/io/graph_io_test.cpp), for instance, contains an example how to use graph data structure.
 
 ```sh
 $ build/tests/test_graph input/cti.graph
