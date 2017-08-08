@@ -107,7 +107,9 @@ The operators you are going to implement should have the following signature:
 Colouring initOperator(const graph_access &G, const ColorCount k);
 \end{minted}
 
-\textbf{Returns} the vector of unsigned int values \\ (\mintinline{cpp}{typedef std::vector<uint32_t> Colouring}) representing the initialized colouring.
+\textbf{Returns} the vector of unsigned int values \\ (\mintinline{cpp}{typedef std::vector<uint32_t> Colouring}) representing the colouring for each node.
+
+Use the marko \mintinline{cpp}{UNCOLORED} to mark a node as uncolored.
 
 \textbf{Parameters:}
 \begin{description}
@@ -143,7 +145,7 @@ Colouring crossoverOperator(const Colouring &s1, const Colouring &s2
 Colouring lsOperator(const Colouring &s, const graph_access &G);
 \end{minted}
 
-\textbf{Returns} a enhanced variant of the colouring s 
+\textbf{Returns} a enhanced variant of the colouring s.
 
 \textbf{Parameters:}
 \begin{description}
