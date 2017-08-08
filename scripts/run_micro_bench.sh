@@ -3,4 +3,4 @@
 mkdir build
 cd build; cmake -DCMAKE_BUILD_TYPE=Release ..;make;cd ..
 mkdir results
-./build/micro_bench/hca_mb > results/hca_mb.txt
+build/micro_benchs/hca_mb > results/hca_mb.txt
