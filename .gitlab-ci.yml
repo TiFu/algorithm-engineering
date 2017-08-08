@@ -1,9 +1,8 @@
 benchmark:
   script:
-  - ./scripts/run_micro_bench.sh
+  - ./test.sh
   artifacts:
     paths:
     - results/*
-    - build/*
     expire_in: 1 week
   when: manual
