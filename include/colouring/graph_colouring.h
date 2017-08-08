@@ -141,19 +141,6 @@ namespace graph_colouring {
      */
     class ColouringStrategy {
     public:
-        ColouringStrategy(const std::vector<InitOperator> &initOperators,
-                          const std::vector<CrossoverOperator> &crossoverOperators,
-                          const std::vector<LSOperator> &lsOperators) :
-                initOperators(initOperators),
-                crossoverOperators(crossoverOperators),
-                lsOperators(lsOperators) {
-            assert(!initOperators.empty());
-            assert(!crossoverOperators.empty());
-            assert(!lsOperators.empty());
-        }
-
-        virtual ~ColouringStrategy() = default;
-
         /**
          * True if the given coloring is a valid solution. By default, a valid coloring must:
          * - have (at most) k colors
@@ -194,11 +181,11 @@ namespace graph_colouring {
                              const Colouring &b) const = 0;
 
         /**< Used initialization operators */
-        const std::vector<InitOperator> &initOperators;
+        std::vector<InitOperator> initOperators;
         /**< Crossover operators */
-        const std::vector<CrossoverOperator> &crossoverOperators;
+        std::vector<CrossoverOperator> crossoverOperators;
         /**< Local Search / Mutation operators */
-        const std::vector<LSOperator> &lsOperators;
+        std::vector<LSOperator> lsOperators;
     };
 
     /**
@@ -206,12 +193,6 @@ namespace graph_colouring {
      */
     class FixedKColouringStrategy : public ColouringStrategy {
     public:
-        FixedKColouringStrategy(const std::vector<InitOperator> &initOperators,
-                                 const std::vector<CrossoverOperator> &crossoverOperators,
-                                 const std::vector<LSOperator> &lsOperators) :
-                ColouringStrategy(initOperators, crossoverOperators, lsOperators) {
-        }
-
         bool compare(const graph_access &G,
                      const Colouring &a,
                      const Colouring &b) const override {
@@ -229,12 +210,6 @@ namespace graph_colouring {
      */
     class VariableColouringStrategy : public ColouringStrategy {
     public:
-        VariableColouringStrategy(const std::vector<InitOperator> &initOperators,
-                               const std::vector<CrossoverOperator> &crossoverOperators,
-                               const std::vector<LSOperator> &lsOperators) :
-                ColouringStrategy(initOperators, crossoverOperators, lsOperators) {
-        }
-
         bool compare(const graph_access &G,
                      const Colouring &a,
                      const Colouring &b) const override {

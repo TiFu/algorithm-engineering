@@ -17,24 +17,21 @@ namespace graph_colouring {
             const size_t threadCount,
             std::ostream *outputStream) {
 
-        std::vector<InitOperator> hcaInitOps = {[](const graph_access &graph,
-                                                   const ColorCount colors) {
+        auto invalidColoring = std::make_shared<FixedKColouringStrategy>();
+        invalidColoring->initOperators.emplace_back([](const graph_access &graph,
+                                                       const ColorCount colors) {
             return graph_colouring::initByGreedySaturation(graph, colors);
 
-        }};
-        std::vector<CrossoverOperator> hcaCrossoverOps = {[](const Colouring &s1,
-                                                             const Colouring &s2,
-                                                             const graph_access &graph) {
+        });
+        invalidColoring->crossoverOperators.emplace_back([](const Colouring &s1,
+                                                            const Colouring &s2,
+                                                            const graph_access &graph) {
             return graph_colouring::gpxCrossover(s1, s2);
-        }};
-        std::vector<LSOperator> hcaLSOps = {[L, A, alpha](const Colouring &s,
-                                                          const graph_access &graph) {
+        });
+        invalidColoring->lsOperators.emplace_back([L, A, alpha](const Colouring &s,
+                                                                const graph_access &graph) {
             return graph_colouring::tabuSearchOperator(s, graph, L, A, alpha);
-        }};
-
-        auto invalidColoring = std::make_shared<FixedKColouringStrategy>(hcaInitOps,
-                                                                          hcaCrossoverOps,
-                                                                          hcaLSOps);
+        });
 
         return ColouringAlgorithm().perform({invalidColoring},
                                             G,

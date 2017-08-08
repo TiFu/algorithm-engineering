@@ -42,70 +42,65 @@ TEST(GraphColouringNumberOfConflictingNodes, SimpleGraph) {
 
 TEST(GraphColouring, parallelSchedule) {
 
-    std::vector<InitOperator> initOps = {[](const graph_access &graph,
-                                            const size_t colors) {
-        Colouring dummy(colors);
-        return dummy;
-    }, [](const graph_access &graph,
-          const size_t colors) {
-        Colouring dummy(colors);
-        return dummy;
-    }, [](const graph_access &graph,
-          const size_t colors) {
-        Colouring dummy(colors);
-        return dummy;
-    }};
 
-    std::vector<CrossoverOperator> crossoverOps = {
-            [](const Colouring &s1,
-               const Colouring &s2,
-               const graph_access &graph) {
-                return s1;
-            }, [](const Colouring &s1,
-                  const Colouring &s2,
-                  const graph_access &graph) {
-                return s2;
-            }};
-
-    std::vector<LSOperator> lsOps = {[](const Colouring &s, const graph_access &graph) {
+    auto invalidColoring = std::make_shared<FixedKColouringStrategy>();
+    invalidColoring->initOperators.emplace_back([](const graph_access &graph,
+                                                   const size_t colors) {
+        Colouring dummy(colors);
+        return dummy;
+    });
+    invalidColoring->initOperators.emplace_back([](const graph_access &graph,
+                                                   const size_t colors) {
+        Colouring dummy(colors);
+        return dummy;
+    });
+    invalidColoring->initOperators.emplace_back([](const graph_access &graph,
+                                                   const size_t colors) {
+        Colouring dummy(colors);
+        return dummy;
+    });
+    invalidColoring->crossoverOperators.emplace_back([](const Colouring &s1,
+                                                        const Colouring &s2,
+                                                        const graph_access &graph) {
+        return s1;
+    });
+    invalidColoring->crossoverOperators.emplace_back([](const Colouring &s1,
+                                                        const Colouring &s2,
+                                                        const graph_access &graph) {
+        return s1;
+    });
+    invalidColoring->lsOperators.emplace_back([](const Colouring &s,
+                                                 const graph_access &graph) {
         return s;
-    }};
+    });
 
-    auto invalidColoring = std::make_shared<FixedKColouringStrategy>(initOps,
-                                                                      crossoverOps,
-                                                                      lsOps);
+    auto validColoring = std::make_shared<VariableColouringStrategy>();
 
-    std::vector<InitOperator> initOps2 = {[](const graph_access &graph,
-                                             const size_t colors) {
+    validColoring->initOperators.emplace_back([](const graph_access &graph,
+                                                 const size_t colors) {
         Colouring dummy(colors);
         return dummy;
-    }};
+    });
 
     size_t executionCounter = 0;
-    std::vector<CrossoverOperator> crossoverOps2 = {
-            [&executionCounter](
-               const Colouring &s1,
-               const Colouring &s2,
-               const graph_access &graph) {
-                executionCounter++;
-                if(executionCounter > 100) {
-                    Colouring solution(s1.size());
-                    for(Color i = 0; i < solution.size(); i++) {
-                        solution[i] = i;
-                    }
-                    return solution;
-                }
-                return s1;
-            }};
-
-    std::vector<LSOperator> lsOps2 = {[](const Colouring &s,
-                                         const graph_access &graph) {
+    validColoring->crossoverOperators.emplace_back([&executionCounter](
+            const Colouring &s1,
+            const Colouring &s2,
+            const graph_access &graph) {
+        executionCounter++;
+        if (executionCounter > 100) {
+            Colouring solution(s1.size());
+            for (Color i = 0; i < solution.size(); i++) {
+                solution[i] = i;
+            }
+            return solution;
+        }
+        return s1;
+    });
+    validColoring->lsOperators.emplace_back([](const Colouring &s,
+                                               const graph_access &graph) {
         return s;
-    }};
-
-    auto validColoring = std::make_shared<VariableColouringStrategy>(initOps2,
-                                                                  crossoverOps2,
-                                                                  lsOps2);
+    });
 
     graph_access G;
     std::string graph_filename = "../../input/simple.graph";
