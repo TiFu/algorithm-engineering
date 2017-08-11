@@ -11,12 +11,12 @@ include(${CMAKE_MODULE_PATH}/DownloadProject/DownloadProject.cmake)
 
 #Boost
 set(BOOST_REQUESTED_VERSION 1.58.0)
-find_package(Boost)
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-else()
-    message(FATAL_ERROR "Your need the Boost header files for lockfree data structures")
+find_package(Boost COMPONENTS atomic)
+if(NOT Boost_FOUND)
+    message(FATAL_ERROR "You need the Boost header files for lockfree data structures")
 endif()
+#
+include_directories(${Boost_INCLUDE_DIRS})
 
 #Common flags and variables
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
@@ -36,7 +36,7 @@ file(GLOB_RECURSE INCLUDES
 
 #Static library packaging
 add_library(colouring ${SRCS} ${INCLUDES})
-set(CORE_LIBS colouring)
+set(CORE_LIBS colouring ${Boost_LIBRARIES})
 
 #nested build scripts
 add_subdirectory(tests)
