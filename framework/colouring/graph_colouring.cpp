@@ -117,7 +117,7 @@ namespace graph_colouring {
         return true;
     }
 
-    static void workerThread(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
+    static void workerThread(const std::vector<std::unique_ptr<ColouringStrategy>> &strategies,
                              const graph_access &G,
                              const size_t populationSize,
                              const size_t maxItr,
@@ -209,7 +209,7 @@ namespace graph_colouring {
     }
 
     std::vector<ColouringResult>
-    ColouringAlgorithm::perform(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
+    ColouringAlgorithm::perform(const std::vector<std::unique_ptr<ColouringStrategy>> &strategies,
                                 const graph_access &G,
                                 const ColorCount k,
                                 const size_t populationSize,
@@ -314,7 +314,7 @@ namespace graph_colouring {
                     best = nextTry;
                 }
             }
-            bestResults[strategyId] = {P[best], strategies[strategyId]};
+            bestResults[strategyId] = {P[best], nullptr};
         }
         return bestResults;
     }

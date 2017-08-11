@@ -229,7 +229,7 @@ namespace graph_colouring {
         /**< The best configuration */
         Colouring s;
         /**< The algorithm category used to retrieve the corresponding category */
-        std::shared_ptr<ColouringStrategy> strategy;
+        std::unique_ptr<ColouringStrategy> strategy;
     };
 
     class ColouringAlgorithm {
@@ -248,7 +248,7 @@ namespace graph_colouring {
          * @param outputStream if not null, it will be used to report recently found colourings
          * @return the best colourings for each passed colouring category
          */
-        std::vector<ColouringResult> perform(const std::vector<std::shared_ptr<ColouringStrategy>> &strategies,
+        std::vector<ColouringResult> perform(const std::vector<std::unique_ptr<ColouringStrategy>> &strategies,
                                              const graph_access &G,
                                              ColorCount k,
                                              size_t populationSize,

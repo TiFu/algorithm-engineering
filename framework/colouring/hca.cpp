@@ -17,23 +17,24 @@ namespace graph_colouring {
             const size_t threadCount,
             std::ostream *outputStream) {
 
-        auto invalidColoring = std::make_shared<FixedKColouringStrategy>();
-        invalidColoring->initOperators.emplace_back([](const graph_access &graph,
+        std::vector<std::unique_ptr<ColouringStrategy>> strategies;
+        strategies.emplace_back(new FixedKColouringStrategy());
+        strategies[0]->initOperators.emplace_back([](const graph_access &graph,
                                                        const ColorCount colors) {
             return graph_colouring::initByGreedySaturation(graph, colors);
 
         });
-        invalidColoring->crossoverOperators.emplace_back([](const Colouring &s1,
+        strategies[0]->crossoverOperators.emplace_back([](const Colouring &s1,
                                                             const Colouring &s2,
                                                             const graph_access &graph) {
             return graph_colouring::gpxCrossover(s1, s2);
         });
-        invalidColoring->lsOperators.emplace_back([L, A, alpha](const Colouring &s,
+        strategies[0]->lsOperators.emplace_back([L, A, alpha](const Colouring &s,
                                                                 const graph_access &graph) {
             return graph_colouring::tabuSearchOperator(s, graph, L, A, alpha);
         });
 
-        return ColouringAlgorithm().perform({invalidColoring},
+        return ColouringAlgorithm().perform(strategies,
                                             G,
                                             k,
                                             population_size,

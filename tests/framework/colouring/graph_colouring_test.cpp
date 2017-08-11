@@ -43,47 +43,46 @@ TEST(GraphColouringNumberOfConflictingNodes, SimpleGraph) {
 TEST(GraphColouring, parallelSchedule) {
 
 
-    auto invalidColoring = std::make_shared<FixedKColouringStrategy>();
-    invalidColoring->initOperators.emplace_back([](const graph_access &graph,
-                                                   const size_t colors) {
-        Colouring dummy(colors);
-        return dummy;
-    });
-    invalidColoring->initOperators.emplace_back([](const graph_access &graph,
-                                                   const size_t colors) {
-        Colouring dummy(colors);
-        return dummy;
-    });
-    invalidColoring->initOperators.emplace_back([](const graph_access &graph,
-                                                   const size_t colors) {
-        Colouring dummy(colors);
-        return dummy;
-    });
-    invalidColoring->crossoverOperators.emplace_back([](const Colouring &s1,
-                                                        const Colouring &s2,
-                                                        const graph_access &graph) {
-        return s1;
-    });
-    invalidColoring->crossoverOperators.emplace_back([](const Colouring &s1,
-                                                        const Colouring &s2,
-                                                        const graph_access &graph) {
-        return s1;
-    });
-    invalidColoring->lsOperators.emplace_back([](const Colouring &s,
-                                                 const graph_access &graph) {
-        return s;
-    });
-
-    auto validColoring = std::make_shared<VariableColouringStrategy>();
-
-    validColoring->initOperators.emplace_back([](const graph_access &graph,
+    std::vector<std::unique_ptr<ColouringStrategy>> strategies;
+    strategies.emplace_back(new FixedKColouringStrategy());
+    strategies[0]->initOperators.emplace_back([](const graph_access &graph,
                                                  const size_t colors) {
         Colouring dummy(colors);
         return dummy;
     });
+    strategies[0]->initOperators.emplace_back([](const graph_access &graph,
+                                                 const size_t colors) {
+        Colouring dummy(colors);
+        return dummy;
+    });
+    strategies[0]->initOperators.emplace_back([](const graph_access &graph,
+                                                 const size_t colors) {
+        Colouring dummy(colors);
+        return dummy;
+    });
+    strategies[0]->crossoverOperators.emplace_back([](const Colouring &s1,
+                                                      const Colouring &s2,
+                                                      const graph_access &graph) {
+        return s1;
+    });
+    strategies[0]->crossoverOperators.emplace_back([](const Colouring &s1,
+                                                      const Colouring &s2,
+                                                      const graph_access &graph) {
+        return s1;
+    });
+    strategies[0]->lsOperators.emplace_back([](const Colouring &s,
+                                               const graph_access &graph) {
+        return s;
+    });
 
+    strategies.emplace_back(new VariableColouringStrategy());
+    strategies[1]->initOperators.emplace_back([](const graph_access &graph,
+                                                 const size_t colors) {
+        Colouring dummy(colors);
+        return dummy;
+    });
     size_t executionCounter = 0;
-    validColoring->crossoverOperators.emplace_back([&executionCounter](
+    strategies[1]->crossoverOperators.emplace_back([&executionCounter](
             const Colouring &s1,
             const Colouring &s2,
             const graph_access &graph) {
@@ -97,7 +96,7 @@ TEST(GraphColouring, parallelSchedule) {
         }
         return s1;
     });
-    validColoring->lsOperators.emplace_back([](const Colouring &s,
+    strategies[1]->lsOperators.emplace_back([](const Colouring &s,
                                                const graph_access &graph) {
         return s;
     });
@@ -110,7 +109,7 @@ TEST(GraphColouring, parallelSchedule) {
     const size_t populationSize = 20;
     const size_t maxItr = 100;
 
-    ColouringAlgorithm().perform({invalidColoring, validColoring},
+    ColouringAlgorithm().perform(strategies,
                                  G,
                                  k,
                                  populationSize,
