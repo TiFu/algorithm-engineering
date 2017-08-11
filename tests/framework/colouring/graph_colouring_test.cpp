@@ -68,7 +68,7 @@ TEST(GraphColouring, parallelSchedule) {
     strategies[0]->crossoverOperators.emplace_back([](const Colouring &s1,
                                                       const Colouring &s2,
                                                       const graph_access &graph) {
-        return s1;
+        return s2;
     });
     strategies[0]->lsOperators.emplace_back([](const Colouring &s,
                                                const graph_access &graph) {
