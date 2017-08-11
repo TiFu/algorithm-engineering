@@ -15,7 +15,6 @@ find_package(Boost COMPONENTS atomic)
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "You need the Boost header files for lockfree data structures")
 endif()
-#
 include_directories(${Boost_INCLUDE_DIRS})
 
 #Common flags and variables
