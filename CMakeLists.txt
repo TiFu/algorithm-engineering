@@ -10,8 +10,13 @@ include(ConfigSafeGuards)
 include(${CMAKE_MODULE_PATH}/DownloadProject/DownloadProject.cmake)
 
 #Boost
-set(BOOST_REQUESTED_VERSION 1.61.0)
+set(BOOST_REQUESTED_VERSION 1.58.0)
 find_package(Boost)
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+else()
+    message(FATAL_ERROR "Your need the Boost header files for lockfree data structures")
+endif()
 
 #Common flags and variables
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
