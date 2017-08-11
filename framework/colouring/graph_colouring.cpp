@@ -1,4 +1,4 @@
-#include "colouring/graph_colouring.h"
+#include "graph_colouring.h"
 
 #include <atomic>
 #include <algorithm>

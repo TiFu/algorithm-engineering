@@ -31,7 +31,7 @@
 #include <sstream>
 #include <string>
 
-#include "data_structure/graph.h"
+#include "../graph.h"
 
 namespace graph_io {
     int readGraphWeighted(graph_access &G, const std::string &filename);

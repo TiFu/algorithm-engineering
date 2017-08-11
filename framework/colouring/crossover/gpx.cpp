@@ -1,4 +1,4 @@
-#include "colouring/crossover/gpx.h"
+#include "gpx.h"
 
 #include <algorithm>
 

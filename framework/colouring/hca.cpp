@@ -1,8 +1,8 @@
-#include "colouring/hca.h"
+#include "hca.h"
 
-#include "colouring/init/greedy_saturation.h"
-#include "colouring/crossover/gpx.h"
-#include "colouring/ls/tabu_search.h"
+#include "init/greedy_saturation.h"
+#include "crossover/gpx.h"
+#include "ls/tabu_search.h"
 
 namespace graph_colouring {
 

@@ -1,4 +1,4 @@
-#include "data_structure/io/graph_io.h"
+#include "graph_io.h"
 
 int graph_io::readGraphWeighted(graph_access &G, const std::string &filename) {
     std::string line;

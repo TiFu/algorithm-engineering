@@ -1,4 +1,4 @@
-#include "colouring/ls/tabu_search.h"
+#include "tabu_search.h"
 
 using namespace graph_colouring;
 

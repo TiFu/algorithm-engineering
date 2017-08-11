@@ -16,15 +16,18 @@ find_package(Boost COMPONENTS lockfeee)
 #Common flags and variables
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${ROOT}/include)
+include_directories(${ROOT})
+include_directories(${ROOT}/framework)
 
 #Source and include files
 
 file(GLOB_RECURSE SRCS
-        "src/*.cpp")
+        "data_structure/*.cpp"
+        "framework/*.cpp")
 
 file(GLOB_RECURSE INCLUDES
-        "include/*.h")
+        "data_structure/*.h"
+        "framework/*.h")
 
 #Static library packaging
 add_library(colouring ${SRCS} ${INCLUDES})

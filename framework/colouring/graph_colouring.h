@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data_structure/graph.h"
+#include "../../data_structure/graph.h"
 
 #include <functional>
 #include <random>

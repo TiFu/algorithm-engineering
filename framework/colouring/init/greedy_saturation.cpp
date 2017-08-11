@@ -1,4 +1,4 @@
-#include "colouring/init/greedy_saturation.h"
+#include "greedy_saturation.h"
 
 using namespace graph_colouring;
 
