@@ -11,7 +11,7 @@ include(${CMAKE_MODULE_PATH}/DownloadProject/DownloadProject.cmake)
 
 #Boost
 set(BOOST_REQUESTED_VERSION 1.61.0)
-find_package(Boost COMPONENTS lockfeee)
+find_package(Boost)
 
 #Common flags and variables
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
