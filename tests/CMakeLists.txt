@@ -16,8 +16,14 @@ include_directories(SYSTEM "${googletest_SOURCE_DIR}/googlemock/include")
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
 
 file(GLOB_RECURSE TEST_SRCS
-        "*.cpp")
+        "framework/*.cpp"
+        "test_main.cpp")
 
+# Google Test executable
 add_executable(colouring_test ${INCLUDE} ${TEST_SRCS})
 target_link_libraries(colouring_test ${CORE_LIBS} gtest gmock)
 add_test(colouring_test colouring_test)
+
+#Just a simple test file
+add_executable(main ${INCLUDE} main.cpp)
+target_link_libraries(main ${CORE_LIBS})
