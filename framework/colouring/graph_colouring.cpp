@@ -223,8 +223,7 @@ namespace graph_colouring {
         assert(threadCount > 0);
 
         if (4 * threadCount > strategies.size() * populationSize) {
-            std::cerr << "WARNING: Make sure that populationSize is bigger than 4*categoryCount*threadCount\n";
-            assert(0);
+            throw "WARNING: Make sure that populationSize is bigger than 4*categoryCount*threadCount\n";
         }
 
         std::vector<Colouring> population(strategies.size() * populationSize);
