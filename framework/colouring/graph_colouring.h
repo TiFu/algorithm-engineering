@@ -170,11 +170,15 @@ namespace graph_colouring {
         virtual bool isFixedKStrategy() const = 0;
 
         /**
-         * Used to compare the scoring of two coloring.
+         * Used to compare the scorings of two colorings within a strategy-specific population.
+         * It is guaranteed that the compared instances resulted from the same initialization phase,
+         * which may be important in fixed-k strategies.
+         * The executing parallel colouring algorithm will always prefer the colourings with the smallest
+         * amount of used colours for the final reporting.
          * @param G the target graph
          * @param a the first coloring
          * @param b the second coloring
-         * @return True if coloring \p has a lesser score compared to coloring \p b
+         * @return True if coloring \p a has a lesser score compared to coloring \p b
          */
         virtual bool compare(const graph_access &G,
                              const Colouring &a,
@@ -223,13 +227,13 @@ namespace graph_colouring {
     };
 
     /**
-     * @brief Represents a single result from coloringAlgorithm()
+     * @brief Represents the best colouring for each strategy
      */
     struct ColouringResult {
         /**< The best configuration */
         Colouring s;
-        /**< The algorithm category used to retrieve the corresponding category */
-        std::unique_ptr<ColouringStrategy> strategy;
+        /**< True if no correct colouring could be found for the particular configuration */
+        bool isValid;
     };
 
     class ColouringAlgorithm {

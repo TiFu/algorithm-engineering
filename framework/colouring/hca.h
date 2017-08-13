@@ -21,14 +21,14 @@ namespace graph_colouring {
      * @param outputStream if not null, it will be used to report recently found colourings
      * @return the best found colouring
      */
-    Colouring hybridColouringAlgorithm(const graph_access &G,
-                                       ColorCount k,
-                                       size_t populationSize,
-                                       size_t maxItr,
-                                       size_t L,
-                                       size_t A,
-                                       double alpha,
-                                       size_t threadCount = std::thread::hardware_concurrency(),
-                                       std::ostream *outputStream = nullptr);
+    ColouringResult hybridColouringAlgorithm(const graph_access &G,
+                                             ColorCount k,
+                                             size_t populationSize,
+                                             size_t maxItr,
+                                             size_t L,
+                                             size_t A,
+                                             double alpha,
+                                             size_t threadCount = std::thread::hardware_concurrency(),
+                                             std::ostream *outputStream = nullptr);
 
 }

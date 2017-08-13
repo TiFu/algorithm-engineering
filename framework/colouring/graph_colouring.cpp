@@ -126,6 +126,7 @@ namespace graph_colouring {
                              boost::lockfree::queue<WorkingPackage> &workQueue,
                              boost::lockfree::queue<MasterPackage> &masterQueue,
                              std::vector<Colouring> &population,
+                             std::vector<Colouring> &localBestColourings,
                              std::vector<std::atomic<bool>> &lock,
                              std::atomic<ColorCount> &target_k,
                              std::atomic<bool> &terminated) {
@@ -202,6 +203,8 @@ namespace graph_colouring {
                 if (strategy.isSolution(G, target_k, result) && last_reported_k > target_k) {
                     last_reported_k = colorCount(result);
                     masterQueue.push({last_reported_k, wp.strategyId});
+                    size_t threadCount = localBestColourings.size() / strategies.size();
+                    localBestColourings[wp.strategyId * threadCount + threadId] = result;
                 }
             }
             std::this_thread::yield();
@@ -227,6 +230,7 @@ namespace graph_colouring {
         }
 
         std::vector<Colouring> population(strategies.size() * populationSize);
+        std::vector<Colouring> localBestColourings(strategies.size() * threadCount);
         //lock[i] = true -> i-th individual is free for mating
         std::vector<std::atomic<bool>> lock(strategies.size() * populationSize);
         std::vector<ColouringStrategyContext> context(strategies.size());
@@ -254,6 +258,7 @@ namespace graph_colouring {
                                     std::ref(workQueue),
                                     std::ref(masterQueue),
                                     std::ref(population),
+                                    std::ref(localBestColourings),
                                     std::ref(lock),
                                     std::ref(target_k),
                                     std::ref(terminated));
@@ -306,14 +311,34 @@ namespace graph_colouring {
 
         std::vector<ColouringResult> bestResults(strategies.size());
         for (size_t strategyId = 0; strategyId < strategies.size(); strategyId++) {
-            auto best = strategyId;
-            for (int i = 0; i < populationSize; i++) {
-                auto nextTry = strategyId * populationSize + i;
-                if (strategies[strategyId]->compare(G, population[best], population[nextTry])) {
-                    best = nextTry;
+            Colouring *bestColouring = nullptr;
+            for (size_t i = 0; i < threadCount; i++) {
+                auto &localBestColouring = localBestColourings[strategyId * threadCount + i];
+                if (localBestColouring.empty()) {
+                    continue;
+                }
+                if (bestColouring == nullptr) {
+                    bestColouring = &localBestColouring;
+                    continue;
+                }
+                bestColouring = colorCount(*bestColouring) > colorCount(localBestColouring)
+                                ? &localBestColouring : bestColouring;
+            }
+
+            bool foundBestColourings = bestColouring != nullptr;
+
+            if (!foundBestColourings) {
+                for (size_t i = 0; i < populationSize; i++) {
+                    auto nextTry = strategyId * populationSize + i;
+                    if (bestColouring == nullptr) {
+                        bestColouring = &population[nextTry];
+                        continue;
+                    }
+                    bestColouring = strategies[strategyId]->compare(G, *bestColouring, population[nextTry])
+                                    ? &population[nextTry] : bestColouring;
                 }
             }
-            bestResults[strategyId] = {population[best], nullptr};
+            bestResults[strategyId] = {*bestColouring, foundBestColourings};
         }
         return bestResults;
     }

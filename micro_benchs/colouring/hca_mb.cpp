@@ -22,10 +22,13 @@ void BM_hca(benchmark::State &state,
         auto A = size_t(state.range(6));
         const double alpha = double(state.range(7)) / 10;
         auto result = hybridColouringAlgorithm(G, k, population_size, maxItr, L, A, alpha, threadCount);
-        auto result_k = graph_colouring::colorCount(result);
+        auto result_k = graph_colouring::colorCount(result.s);
         if (result_k > min_k) {
             std::cerr << "Should return a colouring with k = "
                       << min_k << " (is actually " << result_k << ")\n";
+        }
+        if (!result.isValid) {
+            std::cerr << "Should return a valid colouring\n";
         }
     }
 }
@@ -33,10 +36,10 @@ void BM_hca(benchmark::State &state,
 BENCHMARK_CAPTURE(BM_hca, miles250,
                   "../../input/miles250-sorted.graph")
         ->Unit(benchmark::kMillisecond)
-        ->Args({1, 7, 9, 100,  20, 5, 2, 6})
-        ->Args({2, 7, 9, 100,  20, 5, 2, 6})
-        ->Args({1, 7, 9, 1000, 20, 5, 2, 6})
-        ->Args({2, 7, 9, 1000, 20, 5, 2, 6});
+        ->Args({1, 8, 9, 100,  20, 5, 2, 6})
+        ->Args({2, 8, 9, 100,  20, 5, 2, 6})
+        ->Args({1, 8, 9, 1000, 20, 5, 2, 6})
+        ->Args({2, 8, 9, 1000, 20, 5, 2, 6});
 
 /*
 BENCHMARK_CAPTURE(BM_hca, DSJC250_5,

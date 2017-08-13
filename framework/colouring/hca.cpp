@@ -6,7 +6,7 @@
 
 namespace graph_colouring {
 
-    Colouring hybridColouringAlgorithm(
+    ColouringResult hybridColouringAlgorithm(
             const graph_access &G,
             const ColorCount k,
             const size_t population_size,
@@ -20,17 +20,17 @@ namespace graph_colouring {
         std::vector<std::unique_ptr<ColouringStrategy>> strategies;
         strategies.emplace_back(new FixedKColouringStrategy());
         strategies[0]->initOperators.emplace_back([](const graph_access &graph,
-                                                       const ColorCount colors) {
+                                                     const ColorCount colors) {
             return graph_colouring::initByGreedySaturation(graph, colors);
 
         });
         strategies[0]->crossoverOperators.emplace_back([](const Colouring &s1,
-                                                            const Colouring &s2,
-                                                            const graph_access &graph) {
+                                                          const Colouring &s2,
+                                                          const graph_access &graph) {
             return graph_colouring::gpxCrossover(s1, s2);
         });
         strategies[0]->lsOperators.emplace_back([L, A, alpha](const Colouring &s,
-                                                                const graph_access &graph) {
+                                                              const graph_access &graph) {
             return graph_colouring::tabuSearchOperator(s, graph, L, A, alpha);
         });
 
@@ -40,6 +40,6 @@ namespace graph_colouring {
                                             population_size,
                                             maxItr,
                                             threadCount,
-                                            outputStream)[0].s;
+                                            outputStream)[0];
     }
 }
