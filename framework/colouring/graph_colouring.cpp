@@ -227,7 +227,7 @@ namespace graph_colouring {
             assert(0);
         }
 
-        std::vector<Colouring> P(strategies.size() * populationSize);
+        std::vector<Colouring> population(strategies.size() * populationSize);
         //lock[i] = true -> i-th individual is free for mating
         std::vector<std::atomic<bool>> lock(strategies.size() * populationSize);
         std::vector<ColouringStrategyContext> context(strategies.size());
@@ -254,7 +254,7 @@ namespace graph_colouring {
                                     std::ref(context),
                                     std::ref(workQueue),
                                     std::ref(masterQueue),
-                                    std::ref(P),
+                                    std::ref(population),
                                     std::ref(lock),
                                     std::ref(target_k),
                                     std::ref(terminated));
@@ -310,11 +310,11 @@ namespace graph_colouring {
             auto best = strategyId;
             for (int i = 0; i < populationSize; i++) {
                 auto nextTry = strategyId * populationSize + i;
-                if (strategies[strategyId]->compare(G, P[best], P[nextTry])) {
+                if (strategies[strategyId]->compare(G, population[best], population[nextTry])) {
                     best = nextTry;
                 }
             }
-            bestResults[strategyId] = {P[best], nullptr};
+            bestResults[strategyId] = {population[best], nullptr};
         }
         return bestResults;
     }
