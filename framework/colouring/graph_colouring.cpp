@@ -47,6 +47,15 @@ namespace graph_colouring {
         return color_count;
     }
 
+    int64_t squaredColorClassSizes(const Colouring &s) {
+        ColorCount numColors = colorCount(s);
+        std::vector<int64_t> colorClassSizes(numColors);
+        for (auto n : s) {
+            colorClassSizes[n]++;
+        }
+        return -1 * std::accumulate(colorClassSizes.begin(), colorClassSizes.end(), 0, [&] (int64_t a, int64_t b) {return a + b * b;});
+    }
+
     bool allowedInClass(const graph_access &G,
                         const Colouring &c,
                         const Color color,
@@ -84,6 +93,16 @@ namespace graph_colouring {
             }
         }
         return count / 2;
+    }
+
+    size_t sumUncoloredDegree(const graph_access &G, const Colouring &s) {
+        ColorCount degree_count = 0;
+        for (NodeID id = 0; id < G.number_of_nodes(); ++id) {
+            if (s[id] == UNCOLORED) {
+                degree_count += G.getNodeDegree(id);
+            }
+        }
+        return degree_count;
     }
 
     inline size_t chooseParent(const size_t strategyId,

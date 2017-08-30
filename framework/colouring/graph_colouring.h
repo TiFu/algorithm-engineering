@@ -8,6 +8,7 @@
 #include <memory>
 #include <thread>
 #include <boost/lockfree/queue.hpp>
+#include <cstdint>
 
 template<typename T>
 std::ostream &operator<<(std::ostream &strm, const std::set<T> &set) {
@@ -78,6 +79,12 @@ namespace graph_colouring {
     ColorCount colorCount(const Colouring &s);
 
     /**
+     * @param s a graph colouring
+     * @return the sum of squared color class sizes used in the configuration times -1 \s
+     */
+    int64_t squaredColorClassSizes(const Colouring &s);
+
+    /**
      * @param G the target graph
      * @param s the colouring of graph \p G
      * @param color the color class to test
@@ -105,6 +112,15 @@ namespace graph_colouring {
      * @return the number of edges between two nodes that have the same colouring
      */
     size_t numberOfConflictingEdges(const graph_access &G,
+                                    const Colouring &s);
+
+    /**
+     *
+     * @param G the target graph
+     * @param s the colouring of graph \p G
+     * @return the sum of the degrees of the vertices that are uncolored
+     */
+    size_t sumUncoloredDegree(const graph_access &G,
                                     const Colouring &s);
 
     /**
@@ -210,6 +226,23 @@ namespace graph_colouring {
     };
 
     /**
+     * This strategy is supposed for operator families which can handle invalid colourings
+     */
+    class FixedKPartialColouringStrategy : public ColouringStrategy {
+    public:
+        bool compare(const graph_access &G,
+                     const Colouring &a,
+                     const Colouring &b) const override {
+            return sumUncoloredDegree(G, a) >
+                sumUncoloredDegree(G, b);
+        }
+
+        bool isFixedKStrategy() const override {
+            return true;
+        }
+    };
+
+    /**
      * This strategy is supposed for operator families which can handle valid colourings
      */
     class VariableColouringStrategy : public ColouringStrategy {
@@ -217,8 +250,8 @@ namespace graph_colouring {
         bool compare(const graph_access &G,
                      const Colouring &a,
                      const Colouring &b) const override {
-            return colorCount(a) >
-                   colorCount(b);
+            return squaredColorClassSizes(a) >
+                   squaredColorClassSizes(b);
         }
 
         bool isFixedKStrategy() const override {
