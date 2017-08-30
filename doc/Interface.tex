@@ -1,0 +1,156 @@
+\documentclass{scrartcl}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[table]{xcolor}
+\usepackage[labelfont=bf]{caption}
+\usepackage[colorinlistoftodos,%
+			prependcaption,%
+			textsize=tiny]{todonotes}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{nameref}
+\usepackage{floatrow}
+\usepackage[outputdir=build]{minted}
+\usepackage{url}
+\usepackage{tikz}
+\usepackage{csquotes}
+\usepackage{pdflscape}
+\usepackage{environ}
+\usepackage{booktabs}
+\usepackage[citestyle=alphabetic-verb,%
+			bibstyle=numeric,%
+			hyperref,%
+			backend=biber]{biblatex}
+\usepackage{pgfgantt}
+
+%% Meta Information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\thetitle}{Algorithm Engineering - Parallel Graph Colouring Framework}
+
+\newcommand{\thekeywords}{Algorithm Engineering SS 17}
+
+\renewcommand{\theauthor}{Rudolf Biczok}
+
+\newcounter{myWeekNum}
+\stepcounter{myWeekNum}
+%
+\newcommand{\myWeek}{\themyWeekNum
+	\stepcounter{myWeekNum}
+	\ifnum\themyWeekNum=53
+	\setcounter{myWeekNum}{1}
+	\else\fi
+}
+
+\setlength\parindent{0pt}
+
+%% PDF Setup %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\hypersetup{
+	% non-Latin characters in Acrobat’s bookmarks
+	unicode=true, %
+	% show Acrobat’s toolbar?
+	pdftoolbar=true, %
+	% show Acrobat’s menu?
+	pdfmenubar=true, %
+	% window fit to page when opened
+	pdffitwindow=false, %
+	% fits the width of the page to the window
+	pdfstartview={FitH}, %
+	% title
+	pdftitle={\thetitle}, %
+	% author
+	pdfauthor={\theauthor}, %
+	% subject of the document
+	pdfsubject={Industry 4.0}, %
+	% creator of the document
+	pdfcreator={\theauthor}, %
+	% producer of the document     
+	pdfproducer={Producer}, %
+	% keywords
+	pdfkeywords={\thekeywords}, %
+	% links in new window
+	pdfnewwindow=false, %
+	% false: boxed links; true: colored links
+	colorlinks=true, %
+	% color of internal links (change box color with linkbordercolor)  
+	linkcolor=blue, %
+	% color of links to bibliography
+	citecolor=green, %
+	% color of file links
+	filecolor=magenta, %
+	% color of external links
+	urlcolor=cyan %
+}
+
+
+%% Actual Content %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\section{Operators}
+
+The operators you are going to implement should have the following signature:
+
+\subsection{Initialization Operator}
+
+\renewcommand{\theFancyVerbLine}{\sffamily \textcolor[rgb]{0.5,0.5,1.0}{\normalsize \oldstylenums{\arabic{FancyVerbLine}}}}
+
+\begin{minted}[frame=lines,
+               framesep=2mm,
+               baselinestretch=1.2,
+               linenos]{cpp}
+Colouring initOperator(const graph_access &G, const ColorCount k);
+\end{minted}
+
+\textbf{Returns} the vector of unsigned int values \\ (\mintinline{cpp}{typedef std::vector<uint32_t> Colouring}) representing the colouring for each node.
+
+Use the marko \mintinline{cpp}{UNCOLORED} to mark a node as uncolored.
+
+\textbf{Parameters:}
+\begin{description}
+	\item[graph\_access] The input graph used to generate the colourings
+	\item[k] The number of colours passed from parallel algorithm. \\
+	It can be ignored if the algorithm does not need it for initialization.
+\end{description}
+
+\subsection{Crossover Operator}
+
+\begin{minted}[frame=lines,
+               framesep=2mm,
+               baselinestretch=1.2,
+               linenos]{cpp}
+Colouring crossoverOperator(const Colouring &s1, const Colouring &s2
+                            const graph_access &G);
+\end{minted}
+
+\textbf{Returns} a new colouring based on two given parent colourings.
+
+\textbf{Parameters:}
+\begin{description}
+	\item[s1 and s2] The two parent colourings
+	\item[G] The input graph used to generate the colourings
+\end{description}
+
+\subsection{Local Search Operator}
+
+\begin{minted}[frame=lines,
+               framesep=2mm,
+               baselinestretch=1.2,
+               linenos]{cpp}
+Colouring lsOperator(const Colouring &s, const graph_access &G);
+\end{minted}
+
+\textbf{Returns} a enhanced variant of the colouring s.
+
+\textbf{Parameters:}
+\begin{description}
+	\item[s] The source colourig to mutate
+	\item[G] The input graph used to generate the colourings
+\end{description}
+
+\end{document}
