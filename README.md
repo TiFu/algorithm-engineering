@@ -22,3 +22,4 @@ So far these are the graphs from the DIMACS coloring chalenge. You can find desc
 # Benchmarking
 Please create your own branch with the name <your_surname>.
 You can write scripts that can be executed on the benchmark server in [test.sh](test.sh). Every file that is in ```results/``` after your script will be downloadable later - so output your timings there! To run your benchmarks and get your results, click on "Pipelines". Click on the arrow next to your commit and select "benchmark". Once your run finishes, it will say "passed". Click on "passed" -> "benchmark". Here you can see the output of your script. On the right hand side there is a link "Download" where you can download an archive with your files.
+You can find the graphs for benchmarking in ```$HOME/graphs/coloring_graphs```. You can iterate over the files in this directory and use them as input to your algorithm.
