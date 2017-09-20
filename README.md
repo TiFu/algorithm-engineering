@@ -1,3 +1,15 @@
+# Writeup
+**Please do not use the (very small) graphs in the ```input``` directory for your evaluation - it is only there to show you how to use the graph data structure. Use the instances mentioned below.**
+
+You have to submit a writeup of your task. You should follow this structure:
+* Abstract 
+* Introduction 
+* Implementation (Data structures, algorithms, maybe time and space complexity)
+* Experimental Evaluation
+    * Experimental Setup (What exactly do you do in your experiments, what parameters do you chose, which graphs do you use)
+    * Experiments (e.g. tables presenting your results, plots with quality over time. Carefully chose how to present your results - for example appropriate averaging, normalizing...)
+        * Interpretation of your results(!)
+
 # Build:
 
 ```sh
