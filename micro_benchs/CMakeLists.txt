@@ -16,5 +16,7 @@ add_subdirectory(${googlebenchmark_SOURCE_DIR} ${googlebenchmark_BINARY_DIR} EXC
 include_directories(SYSTEM "${googlebenchmark_SOURCE_DIR}/include")
 
 add_executable(hca_mb ${INCLUDE} colouring/hca_mb.cpp)
+add_executable(xrlf_mb ${INCLUDE} colouring/xrlf_mb.cpp)
 target_link_libraries(hca_mb ${CORE_LIBS} benchmark)
+target_link_libraries(xrlf_mb ${CORE_LIBS} benchmark)
 add_test(colouring_micro_benchmark hca_mb)
